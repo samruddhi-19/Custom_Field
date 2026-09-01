@@ -1,0 +1,18 @@
+{
+  "name": "Custom Fields Power-Up",
+  "details": "Create and customize fields on Trello boards and cards.",
+  "html": "powerup.html",
+  "icon": {
+    "url": "https://cdn-icons-png.flaticon.com/512/1828/1828817.png"
+  },
+  "author": "Custom Fields",
+  "capabilities": [
+    "board-buttons",
+    "card-buttons",
+    "card-badges",
+    "card-detail-badges",
+    "authorization-status",
+    "show-authorization",
+    "show-settings"
+  ]
+}
