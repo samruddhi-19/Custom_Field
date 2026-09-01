@@ -3,7 +3,7 @@
   "details": "Create and customize fields on Trello boards and cards.",
   "html": "powerup.html",
   "icon": {
-    "url": "https://cdn-icons-png.flaticon.com/512/1828/1828817.png"
+    "url": "./icon.svg"
   },
   "author": "Custom Fields",
   "capabilities": [
