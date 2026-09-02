@@ -89,9 +89,49 @@ function formatBadge(field, value) {
       };
     }
 
+    case "formula": {
+      if (!value) return null;
+      const symb = field.unitSymbol || (field.returnFormat === "currency" ? "$" : "");
+      let formattedText = String(value);
+      if (typeof value === "number") {
+        if (field.returnFormat === "currency") formattedText = `${symb}${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        else if (field.returnFormat === "decimal") formattedText = `${symb}${value.toFixed(2)}`;
+        else if (field.returnFormat === "percentage") formattedText = `${(value * 100).toFixed(1)}%`;
+        else formattedText = `${symb}${value.toLocaleString()}`;
+      }
+      return {
+        title: field.name,
+        text: `${field.name}: ${formattedText}`,
+        color: null,
+      };
+    }
+
     default:
       return null;
   }
+}
+
+function evaluateFormula(formula, schema, values) {
+  if (!formula || typeof formula !== "string") return null;
+  let expr = formula;
+  schema.forEach((f) => {
+    const val = values[f.id];
+    let numVal = 0;
+    if (typeof val === "number") numVal = val;
+    else if (val && !isNaN(Number(val))) numVal = Number(val);
+    expr = expr.replaceAll(`[${f.name}]`, String(numVal));
+  });
+  try {
+    if (!/^[0-9+\-*/().\s%]+$/.test(expr)) return null;
+    // eslint-disable-next-line no-new-func
+    const result = Function(`"use strict"; return (${expr})`)();
+    if (typeof result === "number" && !isNaN(result) && isFinite(result)) {
+      return result;
+    }
+  } catch {
+    return null;
+  }
+  return null;
 }
 
 TrelloPowerUp.initialize({
@@ -176,7 +216,7 @@ TrelloPowerUp.initialize({
     const badges = [];
     schema.forEach((field) => {
       if (field.showBadgeFront === false) return;
-      const val = values[field.id];
+      const val = field.type === "formula" ? evaluateFormula(field.formula, schema, values) : values[field.id];
       const badge = formatBadge(field, val);
       if (badge) {
         badges.push({
@@ -199,7 +239,7 @@ TrelloPowerUp.initialize({
 
     const detailBadges = [];
     schema.forEach((field) => {
-      const val = values[field.id];
+      const val = field.type === "formula" ? evaluateFormula(field.formula, schema, values) : values[field.id];
       const badge = formatBadge(field, val);
       if (badge) {
         detailBadges.push({

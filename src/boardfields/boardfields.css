@@ -573,6 +573,74 @@
   white-space: nowrap;
 }
 
+/* ─── Calculated Formula Specific Settings ─── */
+.cf-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.cf-token-syntax-hint {
+  font-size: 11px;
+  color: var(--cf-text-secondary);
+  font-family: monospace;
+}
+
+.cf-formula-textarea {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 13px;
+  min-height: 80px;
+  background: #14171A;
+  border-color: var(--cf-border-subtle);
+}
+
+.cf-tokens-section-title {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--cf-text-secondary);
+  margin-bottom: 8px;
+}
+
+.cf-tokens-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cf-token-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: var(--cf-radius-sm);
+  border: 1px solid #4A3B8C;
+  background: rgba(124, 92, 252, 0.12);
+  color: #C3BAFF;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--cf-transition);
+  font-family: var(--cf-font);
+}
+
+.cf-token-pill:hover {
+  background: rgba(124, 92, 252, 0.28);
+  border-color: var(--cf-accent);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.cf-calc-format-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.cf-select {
+  cursor: pointer;
+}
+
 /* ─── Dropdown Options ─── */
 .cf-dropdown-header {
   display: flex;

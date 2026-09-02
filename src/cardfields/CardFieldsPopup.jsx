@@ -3,6 +3,29 @@ import { getBoardSchema, getCardFieldValues, saveCardFieldValues } from "../lib/
 import { styles } from "../lib/ui.js";
 import { SpinnerIcon } from "../ui/icons.jsx";
 
+function evaluateFormula(formula, schema, values) {
+  if (!formula || typeof formula !== "string") return null;
+  let expr = formula;
+  schema.forEach((f) => {
+    const val = values[f.id];
+    let numVal = 0;
+    if (typeof val === "number") numVal = val;
+    else if (val && !isNaN(Number(val))) numVal = Number(val);
+    expr = expr.replaceAll(`[${f.name}]`, String(numVal));
+  });
+  try {
+    if (!/^[0-9+\-*/().\s%]+$/.test(expr)) return null;
+    // eslint-disable-next-line no-new-func
+    const result = Function(`"use strict"; return (${expr})`)();
+    if (typeof result === "number" && !isNaN(result) && isFinite(result)) {
+      return result;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 export default function CardFieldsPopup({ t }) {
   const [schema, setSchema] = useState([]);
   const [values, setValues] = useState({});
@@ -180,6 +203,37 @@ export default function CardFieldsPopup({ t }) {
                   })}
                 </div>
               )}
+
+              {field.type === "formula" && (() => {
+                const computed = evaluateFormula(field.formula, schema, values);
+                const symb = field.unitSymbol || (field.returnFormat === "currency" ? "$" : "");
+                let text = "—";
+                if (computed !== null && computed !== undefined) {
+                  if (field.returnFormat === "currency") text = `${symb}${computed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                  else if (field.returnFormat === "decimal") text = `${symb}${computed.toFixed(2)}`;
+                  else if (field.returnFormat === "percentage") text = `${(computed * 100).toFixed(1)}%`;
+                  else text = `${symb}${computed.toLocaleString()}`;
+                }
+                return (
+                  <div
+                    style={{
+                      padding: "8px 12px",
+                      background: "#14171A",
+                      borderRadius: 4,
+                      border: "1px solid #333C43",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: computed !== null ? "#7C5CFC" : "#6B778C",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <span>{text}</span>
+                    <span style={{ fontSize: 11, color: "#6B778C", fontWeight: 400 }}>Auto-calculated</span>
+                  </div>
+                );
+              })()}
             </div>
           );
         })}

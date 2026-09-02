@@ -100,6 +100,9 @@ export default function BoardFieldsPopup({ t }) {
   const [minValue, setMinValue] = useState("0");
   const [decimalPlaces, setDecimalPlaces] = useState("0");
   const [dateTimeMode, setDateTimeMode] = useState("datetime");
+  const [formula, setFormula] = useState("");
+  const [returnFormat, setReturnFormat] = useState("currency");
+  const [unitSymbol, setUnitSymbol] = useState("$");
 
   useEffect(() => {
     async function load() {
@@ -123,6 +126,12 @@ export default function BoardFieldsPopup({ t }) {
     { id: "opt_default_low", text: "Low Priority", color: "#36b37e" },
   ];
 
+  const SAMPLE_TOKENS = [
+    "Priority Level", "Story Points", "Billable Hours", "Hourly Rate",
+    "Target Deployment Date & Time", "QA Sign-off", "SLA Escalation Required",
+    "Security & Compliance", "Customer Release Note",
+  ];
+
   function handleStartAdd(preselectedType) {
     const selectedType = preselectedType || "dropdown";
     setEditId(null);
@@ -136,6 +145,9 @@ export default function BoardFieldsPopup({ t }) {
     setMinValue("0");
     setDecimalPlaces("0");
     setDateTimeMode("datetime");
+    setFormula("");
+    setReturnFormat("currency");
+    setUnitSymbol("$");
     setStepTab("config");
     setView("create");
   }
@@ -152,6 +164,9 @@ export default function BoardFieldsPopup({ t }) {
     setMinValue(field.minValue !== undefined && field.minValue !== null ? String(field.minValue) : "0");
     setDecimalPlaces(field.decimalPlaces !== undefined && field.decimalPlaces !== null ? String(field.decimalPlaces) : "0");
     setDateTimeMode(field.dateTimeMode || "datetime");
+    setFormula(field.formula || "");
+    setReturnFormat(field.returnFormat || "currency");
+    setUnitSymbol(field.unitSymbol || "$");
     setStepTab("config");
     setView("create");
   }
@@ -182,6 +197,11 @@ export default function BoardFieldsPopup({ t }) {
     setOptions(options.filter((_, i) => i !== idx));
   }
 
+  function handleInsertToken(tokenName) {
+    const token = `[${tokenName}]`;
+    setFormula((prev) => (prev ? `${prev} ${token}` : token));
+  }
+
   async function handleSaveField() {
     if (!name.trim()) {
       alert("Please enter a field name.");
@@ -199,6 +219,10 @@ export default function BoardFieldsPopup({ t }) {
       decimalPlaces: decimalPlaces !== "" ? Number(decimalPlaces) : 0,
     } : type === "date" ? {
       dateTimeMode: dateTimeMode || "datetime",
+    } : type === "formula" ? {
+      formula: formula.trim() || undefined,
+      returnFormat: returnFormat || "currency",
+      unitSymbol: unitSymbol.trim() || undefined,
     } : {};
 
     let updated;
@@ -506,6 +530,73 @@ export default function BoardFieldsPopup({ t }) {
                           </div>
                           <div className="cf-mode-card-name">Both Date & Time</div>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : type === "formula" ? (
+                  <div className="cf-settings-panel">
+                    <h3>Calculated Specific Settings</h3>
+
+                    <div className="cf-form-group">
+                      <div className="cf-label-row">
+                        <label className="cf-form-label" style={{ margin: 0 }}>Formula Expression</label>
+                        <span className="cf-token-syntax-hint">Token syntax: [Field Name]</span>
+                      </div>
+                      <textarea
+                        className="cf-form-textarea cf-formula-textarea"
+                        placeholder="e.g. [Billable Hours] * [Hourly Rate]"
+                        value={formula}
+                        onChange={(e) => setFormula(e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="cf-form-group">
+                      <div className="cf-tokens-section-title">
+                        Click to insert field token into formula:
+                      </div>
+                      <div className="cf-tokens-wrapper">
+                        {Array.from(new Set([
+                          ...schema.filter((f) => f.name && (!editId || f.id !== editId)).map((f) => f.name),
+                          ...SAMPLE_TOKENS,
+                        ])).map((tName) => (
+                          <button
+                            key={tName}
+                            type="button"
+                            className="cf-token-pill"
+                            onClick={() => handleInsertToken(tName)}
+                          >
+                            + [{tName}]
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="cf-calc-format-grid">
+                      <div className="cf-form-group">
+                        <label className="cf-form-label">Return Format</label>
+                        <select
+                          className="cf-form-input cf-select"
+                          value={returnFormat}
+                          onChange={(e) => setReturnFormat(e.target.value)}
+                        >
+                          <option value="currency">Currency ($1,250.00)</option>
+                          <option value="number">Number (1,250)</option>
+                          <option value="decimal">Decimal (1,250.00)</option>
+                          <option value="percentage">Percentage (12.5%)</option>
+                          <option value="text">Text</option>
+                        </select>
+                      </div>
+
+                      <div className="cf-form-group">
+                        <label className="cf-form-label">Currency / Unit Symbol</label>
+                        <input
+                          type="text"
+                          className="cf-form-input"
+                          placeholder="$"
+                          value={unitSymbol}
+                          onChange={(e) => setUnitSymbol(e.target.value)}
+                        />
                       </div>
                     </div>
                   </div>
