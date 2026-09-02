@@ -73,6 +73,13 @@ const COLOR_OPTIONS = [
 
 const STEP_TABS = ["config", "permissions", "display"];
 
+function getOptionColorHex(color) {
+  if (!color) return "#5e6c84";
+  if (color.startsWith("#")) return color;
+  const match = COLOR_OPTIONS.find((c) => c.value === color || c.name.toLowerCase() === color.toLowerCase());
+  return match ? match.bg : "#5e6c84";
+}
+
 export default function BoardFieldsPopup({ t }) {
   const [schema, setSchema] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -87,8 +94,6 @@ export default function BoardFieldsPopup({ t }) {
   const [type, setType] = useState("dropdown");
   const [showBadgeFront, setShowBadgeFront] = useState(true);
   const [options, setOptions] = useState([]);
-  const [optText, setOptText] = useState("");
-  const [optColor, setOptColor] = useState("red");
 
   useEffect(() => {
     async function load() {
@@ -107,9 +112,9 @@ export default function BoardFieldsPopup({ t }) {
   /* ─── Handlers ─── */
 
   const DEFAULT_DROPDOWN_OPTIONS = [
-    { id: "opt_default_high", text: "High Priority", color: "red" },
-    { id: "opt_default_medium", text: "Medium Priority", color: "blue" },
-    { id: "opt_default_low", text: "Low Priority", color: "green" },
+    { id: "opt_default_high", text: "High Priority", color: "#de350b" },
+    { id: "opt_default_medium", text: "Medium Priority", color: "#0052cc" },
+    { id: "opt_default_low", text: "Low Priority", color: "#36b37e" },
   ];
 
   function handleStartAdd(preselectedType) {
@@ -136,16 +141,25 @@ export default function BoardFieldsPopup({ t }) {
   }
 
   function handleAddOption() {
-    if (!optText.trim()) return;
+    const newIndex = options.length + 1;
+    const defaultPalette = ["#de350b", "#0052cc", "#36b37e", "#ffab00", "#6554c0", "#ff5630", "#00b8d9"];
+    const color = defaultPalette[options.length % defaultPalette.length];
     setOptions([
       ...options,
       {
-        id: "opt_" + Date.now() + Math.random().toString(36).substring(2, 5),
-        text: optText.trim(),
-        color: optColor,
+        id: "opt_" + Date.now() + "_" + Math.random().toString(36).substring(2, 5),
+        text: `Option ${newIndex}`,
+        color: color,
       },
     ]);
-    setOptText("");
+  }
+
+  function handleOptionTextChange(idx, newText) {
+    setOptions(options.map((o, i) => (i === idx ? { ...o, text: newText } : o)));
+  }
+
+  function handleOptionColorChange(idx, newColor) {
+    setOptions(options.map((o, i) => (i === idx ? { ...o, color: newColor } : o)));
   }
 
   function handleRemoveOption(idx) {
@@ -334,7 +348,7 @@ export default function BoardFieldsPopup({ t }) {
                       <button
                         type="button"
                         className="cf-btn-add-option"
-                        onClick={() => document.getElementById("cf-opt-input")?.focus()}
+                        onClick={handleAddOption}
                       >
                         + Add Option
                       </button>
@@ -343,16 +357,27 @@ export default function BoardFieldsPopup({ t }) {
                     <div className="cf-option-list">
                       {options.map((opt, idx) => (
                         <div key={opt.id || idx} className="cf-option-row">
-                          <div
-                            className="cf-option-color-swatch"
-                            style={{
-                              background: COLOR_OPTIONS.find(
-                                (c) => c.value === opt.color
-                              )?.bg || "#5e6c84",
-                            }}
-                          />
+                          <div className="cf-option-color-wrapper" title="Click to change color">
+                            <input
+                              type="color"
+                              className="cf-color-input-hidden"
+                              value={getOptionColorHex(opt.color)}
+                              onChange={(e) => handleOptionColorChange(idx, e.target.value)}
+                            />
+                            <div
+                              className="cf-option-color-swatch"
+                              style={{
+                                background: getOptionColorHex(opt.color),
+                              }}
+                            />
+                          </div>
                           <div className="cf-option-text">
-                            {opt.text}
+                            <input
+                              type="text"
+                              value={opt.text}
+                              placeholder="Option name..."
+                              onChange={(e) => handleOptionTextChange(idx, e.target.value)}
+                            />
                           </div>
                           <button
                             type="button"
@@ -364,40 +389,6 @@ export default function BoardFieldsPopup({ t }) {
                           </button>
                         </div>
                       ))}
-                    </div>
-
-                    <div className="cf-add-option-row">
-                      <input
-                        id="cf-opt-input"
-                        type="text"
-                        placeholder="Option name..."
-                        value={optText}
-                        onChange={(e) => setOptText(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleAddOption();
-                          }
-                        }}
-                      />
-                      <select
-                        className="cf-color-select"
-                        value={optColor}
-                        onChange={(e) => setOptColor(e.target.value)}
-                      >
-                        {COLOR_OPTIONS.map((c) => (
-                          <option key={c.value} value={c.value}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        type="button"
-                        className="cf-btn-add-small"
-                        onClick={handleAddOption}
-                      >
-                        Add
-                      </button>
                     </div>
                   </div>
                 ) : (

@@ -14,6 +14,20 @@ const TRELLO_COLOR_MAP = {
   gray: "light-gray",
 };
 
+function resolveBadgeColor(color) {
+  if (!color) return null;
+  const c = color.toLowerCase();
+  if (TRELLO_COLOR_MAP[c]) return TRELLO_COLOR_MAP[c];
+  if (c.includes("de350b") || c.includes("e53935") || c.includes("f87168") || c.includes("red")) return "red";
+  if (c.includes("0052cc") || c.includes("1e88e5") || c.includes("579dff") || c.includes("blue")) return "blue";
+  if (c.includes("36b37e") || c.includes("4bce97") || c.includes("43a047") || c.includes("green")) return "green";
+  if (c.includes("ffab00") || c.includes("fbc02d") || c.includes("yellow")) return "yellow";
+  if (c.includes("ff5630") || c.includes("fb8c00") || c.includes("orange")) return "orange";
+  if (c.includes("6554c0") || c.includes("8e24aa") || c.includes("7c5cfc") || c.includes("purple")) return "purple";
+  if (c.includes("00b8d9") || c.includes("00acc1") || c.includes("teal")) return "sky";
+  return null;
+}
+
 function formatBadge(field, value) {
   if (value === undefined || value === null || value === "") return null;
 
@@ -39,7 +53,7 @@ function formatBadge(field, value) {
       return {
         title: field.name,
         text: opt.text,
-        color: TRELLO_COLOR_MAP[opt.color] || null,
+        color: resolveBadgeColor(opt.color),
       };
     }
 
@@ -112,9 +126,8 @@ TrelloPowerUp.initialize({
             });
           }
           return t.modal({
-            title: " ",
+            title: "Custom Fields",
             url: "./boardfields.html",
-            accentColor: "#000000",
             fullscreen: false,
             height: 560,
           });
