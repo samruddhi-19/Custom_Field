@@ -112,9 +112,9 @@ TrelloPowerUp.initialize({
             });
           }
           return t.modal({
-            title: "Custom Fields",
+            title: " ",
             url: "./boardfields.html",
-            accentColor: "#FFFFFF",
+            accentColor: "#000000",
             fullscreen: false,
             height: 560,
           });

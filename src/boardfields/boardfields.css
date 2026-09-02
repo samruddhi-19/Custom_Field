@@ -38,10 +38,13 @@
   font-family: var(--cf-font);
   background: var(--cf-bg-primary);
   color: var(--cf-text-primary);
-  min-height: 100vh;
+  height: 100%;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* ─── Header ─── */
@@ -212,14 +215,21 @@
   flex: 1;
   display: flex;
   overflow: hidden;
+  min-height: 0;
+  height: 100%;
 }
 
 .cf-content-left {
   flex: 1;
   padding: 20px;
   overflow-y: auto;
+  overflow-x: hidden;
   border-right: 1px solid var(--cf-border);
   min-width: 0;
+  min-height: 0;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
 .cf-content-right {
@@ -227,7 +237,12 @@
   flex-shrink: 0;
   padding: 20px;
   overflow-y: auto;
+  overflow-x: hidden;
   min-width: 0;
+  min-height: 0;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
 /* ─── Field Type Grid ─── */
@@ -799,20 +814,28 @@
 .cf-content-left::-webkit-scrollbar,
 .cf-content-right::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 .cf-content-left::-webkit-scrollbar-track,
 .cf-content-right::-webkit-scrollbar-track {
   background: transparent;
+  margin: 6px 0;
 }
 
 .cf-content-left::-webkit-scrollbar-thumb,
 .cf-content-right::-webkit-scrollbar-thumb {
-  background: var(--cf-border);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
 }
 
 .cf-content-left::-webkit-scrollbar-thumb:hover,
 .cf-content-right::-webkit-scrollbar-thumb:hover {
-  background: var(--cf-border-subtle);
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.cf-content-left::-webkit-scrollbar-thumb:active,
+.cf-content-right::-webkit-scrollbar-thumb:active {
+  background: var(--cf-accent);
 }

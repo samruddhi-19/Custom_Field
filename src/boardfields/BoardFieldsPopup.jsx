@@ -106,13 +106,20 @@ export default function BoardFieldsPopup({ t }) {
 
   /* ─── Handlers ─── */
 
+  const DEFAULT_DROPDOWN_OPTIONS = [
+    { id: "opt_default_high", text: "High Priority", color: "red" },
+    { id: "opt_default_medium", text: "Medium Priority", color: "blue" },
+    { id: "opt_default_low", text: "Low Priority", color: "green" },
+  ];
+
   function handleStartAdd(preselectedType) {
+    const selectedType = preselectedType || "dropdown";
     setEditId(null);
     setName("");
     setDescription("");
-    setType(preselectedType || "dropdown");
+    setType(selectedType);
     setShowBadgeFront(true);
-    setOptions([]);
+    setOptions(selectedType === "dropdown" ? [...DEFAULT_DROPDOWN_OPTIONS] : []);
     setStepTab("config");
     setView("create");
   }
@@ -256,20 +263,10 @@ export default function BoardFieldsPopup({ t }) {
           </button>
           <button
             type="button"
-            className={`cf-step ${stepTab === "permissions" ? "active" : ""}`}
-            onClick={() => setStepTab("permissions")}
-          >
-            <span className="cf-step-icon">
-              <LockIcon width={12} height={12} />
-            </span>
-            2. Field-Level Permissions
-          </button>
-          <button
-            type="button"
             className={`cf-step ${stepTab === "display" ? "active" : ""}`}
             onClick={() => setStepTab("display")}
           >
-            3. Card Attachment & Front Display
+            2. Card Attachment & Front Display
           </button>
         </div>
 
@@ -412,13 +409,6 @@ export default function BoardFieldsPopup({ t }) {
             </>
           )}
 
-          {stepTab === "permissions" && (
-            <div className="cf-content-left" style={{ borderRight: "none" }}>
-              <div className="cf-placeholder">
-                Field-Level Permissions — Coming Soon
-              </div>
-            </div>
-          )}
 
           {stepTab === "display" && (
             <div className="cf-content-left" style={{ borderRight: "none" }}>
