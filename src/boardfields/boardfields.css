@@ -349,10 +349,20 @@
   color: var(--cf-text-primary);
 }
 
+.cf-create-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 12px 20px;
+  border-top: 1px solid var(--cf-border);
+  background: var(--cf-bg-primary);
+  flex-shrink: 0;
+}
+
 .cf-create-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .cf-btn-cancel {

@@ -372,22 +372,6 @@ export default function BoardFieldsPopup({ t }) {
               {editId ? "Edit Custom Field" : "Create New Custom Field"}
             </span>
           </div>
-          <div className="cf-create-actions">
-            <button
-              type="button"
-              className="cf-btn-cancel"
-              onClick={() => setView("main")}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              className="cf-btn-save"
-              onClick={handleSaveField}
-            >
-              Save Custom Field
-            </button>
-          </div>
         </div>
 
         {/* Step Tabs */}
@@ -846,6 +830,26 @@ export default function BoardFieldsPopup({ t }) {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Bottom Actions Footer */}
+        <div className="cf-create-footer">
+          <div className="cf-create-actions">
+            <button
+              type="button"
+              className="cf-btn-cancel"
+              onClick={() => setView("main")}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="cf-btn-save"
+              onClick={handleSaveField}
+            >
+              Save Custom Field
+            </button>
+          </div>
         </div>
       </div>
     );
