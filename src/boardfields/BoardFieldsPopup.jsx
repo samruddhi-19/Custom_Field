@@ -3,7 +3,6 @@ import { getBoardSchema, saveBoardSchema } from "../lib/trelloApi.js";
 import {
   TrashIcon, EditIcon, SpinnerIcon, CloseIcon,
   ExportIcon, ImportIcon, LockIcon, FieldsIcon,
-  ShieldIcon, TemplateIcon,
   DropdownIcon, NumberIcon, DateTimeIcon, FormulaIcon,
   YesNoIcon, ConditionalIcon, CheckboxIcon, TextIcon,
 } from "../ui/icons.jsx";
@@ -72,14 +71,13 @@ const COLOR_OPTIONS = [
   { name: "Gray", value: "gray", bg: "#5e6c84" },
 ];
 
-const MAIN_TABS = ["all", "permissions", "templates"];
 const STEP_TABS = ["config", "permissions", "display"];
 
 export default function BoardFieldsPopup({ t }) {
   const [schema, setSchema] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("main"); // main | create
-  const [mainTab, setMainTab] = useState("all");
+
   const [stepTab, setStepTab] = useState("config");
   const [editId, setEditId] = useState(null);
 
@@ -447,153 +445,75 @@ export default function BoardFieldsPopup({ t }) {
   /* ─── Main Panel View ─── */
   return (
     <div className="cf-panel">
-      {/* Header */}
-      <div className="cf-header">
-        <div className="cf-header-icon">
-          <FieldsIcon width={18} height={18} />
-        </div>
-        <div className="cf-header-info">
-          <div className="cf-header-title">
-            <h2>Custom Fields Pro</h2>
-            <span className="cf-badge-active">Power-Up Active</span>
-          </div>
-          <div className="cf-header-subtitle">
-            Manage field types, calculations, card front badges, and{" "}
-            <span className="cf-lock-inline">
-              <LockIcon width={11} height={11} />
-            </span>{" "}
-            field-level edit permissions.
-          </div>
-        </div>
-        <div className="cf-header-actions">
-          <button type="button" className="cf-btn-header">
-            <ExportIcon width={13} height={13} />
-            Export
-          </button>
-          <button type="button" className="cf-btn-header">
-            <ImportIcon width={13} height={13} />
-            Import
-          </button>
-          <button
-            type="button"
-            className="cf-btn-close"
-            onClick={handleClose}
-            title="Close"
-          >
-            <CloseIcon width={18} height={18} />
-          </button>
-        </div>
-      </div>
-
-      {/* Tab Bar */}
-      <div className="cf-tabs">
+      {/* Close Button */}
+      <div className="cf-header" style={{ justifyContent: "flex-end" }}>
         <button
           type="button"
-          className={`cf-tab ${mainTab === "all" ? "active" : ""}`}
-          onClick={() => setMainTab("all")}
+          className="cf-btn-close"
+          onClick={handleClose}
+          title="Close"
         >
-          <span className="cf-tab-icon">
-            <FieldsIcon width={14} height={14} />
-          </span>
-          All Fields ({schema.length})
-        </button>
-        <button
-          type="button"
-          className={`cf-tab ${mainTab === "permissions" ? "active" : ""}`}
-          onClick={() => setMainTab("permissions")}
-        >
-          <span className="cf-tab-icon cf-tab-icon--lock">
-            <ShieldIcon width={14} height={14} />
-          </span>
-          Permission Matrix
-        </button>
-        <button
-          type="button"
-          className={`cf-tab ${mainTab === "templates" ? "active" : ""}`}
-          onClick={() => setMainTab("templates")}
-        >
-          <span className="cf-tab-icon">
-            <TemplateIcon width={14} height={14} />
-          </span>
-          Field Templates
+          <CloseIcon width={18} height={18} />
         </button>
       </div>
 
       {/* Content */}
       <div className="cf-content">
-        {mainTab === "all" && (
-          <div className="cf-content-left" style={{ borderRight: "none" }}>
-              {/* Add New Field Button */}
-              <button
-                type="button"
-                className="cf-btn-new-field"
-                onClick={() => handleStartAdd()}
-              >
-                + New Custom Field
-              </button>
+        <div className="cf-content-left" style={{ borderRight: "none" }}>
+            {/* Add New Field Button */}
+            <button
+              type="button"
+              className="cf-btn-new-field"
+              onClick={() => handleStartAdd()}
+            >
+              + New Custom Field
+            </button>
 
-              {/* Existing Fields List */}
-              {schema.length > 0 ? (
-                <div className="cf-fields-list">
-                  {schema.map((field) => (
-                    <div key={field.id} className="cf-field-item">
-                      <div className="cf-field-item-info">
-                        <div className="cf-field-item-name">{field.name}</div>
-                        <div className="cf-field-item-meta">
-                          {field.type}
-                          {field.options
-                            ? ` (${field.options.length} options)`
-                            : ""}
-                          {field.showBadgeFront ? " • Front Badge" : ""}
-                        </div>
-                      </div>
-                      <div className="cf-field-item-actions">
-                        <button
-                          type="button"
-                          className="cf-btn-icon"
-                          onClick={() => handleStartEdit(field)}
-                          title="Edit"
-                        >
-                          <EditIcon width={14} height={14} />
-                        </button>
-                        <button
-                          type="button"
-                          className="cf-btn-icon danger"
-                          onClick={() => handleDeleteField(field.id)}
-                          title="Delete"
-                        >
-                          <TrashIcon width={14} height={14} />
-                        </button>
+            {/* Existing Fields List */}
+            {schema.length > 0 ? (
+              <div className="cf-fields-list">
+                {schema.map((field) => (
+                  <div key={field.id} className="cf-field-item">
+                    <div className="cf-field-item-info">
+                      <div className="cf-field-item-name">{field.name}</div>
+                      <div className="cf-field-item-meta">
+                        {field.type}
+                        {field.options
+                          ? ` (${field.options.length} options)`
+                          : ""}
+                        {field.showBadgeFront ? " • Front Badge" : ""}
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="cf-empty-state">
-                  <p>No custom fields created yet.</p>
-                  <p style={{ fontSize: 12, color: "var(--cf-text-muted)" }}>
-                    Click "+ New Custom Field" to get started.
-                  </p>
-                </div>
-              )}
-            </div>
-        )}
-
-        {mainTab === "permissions" && (
-          <div className="cf-content-left" style={{ borderRight: "none" }}>
-            <div className="cf-placeholder">
-              Permission Matrix — Coming Soon
-            </div>
+                    <div className="cf-field-item-actions">
+                      <button
+                        type="button"
+                        className="cf-btn-icon"
+                        onClick={() => handleStartEdit(field)}
+                        title="Edit"
+                      >
+                        <EditIcon width={14} height={14} />
+                      </button>
+                      <button
+                        type="button"
+                        className="cf-btn-icon danger"
+                        onClick={() => handleDeleteField(field.id)}
+                        title="Delete"
+                      >
+                        <TrashIcon width={14} height={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="cf-empty-state">
+                <p>No custom fields created yet.</p>
+                <p style={{ fontSize: 12, color: "var(--cf-text-muted)" }}>
+                  Click "+ New Custom Field" to get started.
+                </p>
+              </div>
+            )}
           </div>
-        )}
-
-        {mainTab === "templates" && (
-          <div className="cf-content-left" style={{ borderRight: "none" }}>
-            <div className="cf-placeholder">
-              Field Templates — Coming Soon
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

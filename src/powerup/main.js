@@ -112,7 +112,7 @@ TrelloPowerUp.initialize({
             });
           }
           return t.modal({
-            title: "Custom Fields Pro",
+            title: "Custom Fields",
             url: "./boardfields.html",
             fullscreen: false,
             height: 560,
