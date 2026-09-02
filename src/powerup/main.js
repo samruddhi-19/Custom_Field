@@ -114,6 +114,7 @@ TrelloPowerUp.initialize({
           return t.modal({
             title: "Custom Fields",
             url: "./boardfields.html",
+            accentColor: "#FFFFFF",
             fullscreen: false,
             height: 560,
           });

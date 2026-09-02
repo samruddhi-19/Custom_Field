@@ -445,16 +445,16 @@ export default function BoardFieldsPopup({ t }) {
   /* ─── Main Panel View ─── */
   return (
     <div className="cf-panel">
-      {/* Close Button */}
-      <div className="cf-header" style={{ justifyContent: "flex-end" }}>
-        <button
-          type="button"
-          className="cf-btn-close"
-          onClick={handleClose}
-          title="Close"
-        >
-          <CloseIcon width={18} height={18} />
-        </button>
+      {/* Header */}
+      <div className="cf-header">
+        <div className="cf-header-icon">
+          <FieldsIcon width={18} height={18} />
+        </div>
+        <div className="cf-header-info">
+          <div className="cf-header-title">
+            <h2>Custom Fields</h2>
+          </div>
+        </div>
       </div>
 
       {/* Content */}
