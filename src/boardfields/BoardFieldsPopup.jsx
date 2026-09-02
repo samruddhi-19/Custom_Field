@@ -112,6 +112,8 @@ export default function BoardFieldsPopup({ t }) {
     { id: "chk_1", text: "Requirement 1" },
     { id: "chk_2", text: "Requirement 2" },
   ]);
+  const [multiline, setMultiline] = useState(false);
+  const [placeholder, setPlaceholder] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -174,6 +176,8 @@ export default function BoardFieldsPopup({ t }) {
     setConditionalOperator("equals");
     setConditionalValue("");
     setChecklistItems([...DEFAULT_CHECKLIST_ITEMS]);
+    setMultiline(false);
+    setPlaceholder("");
     setStepTab("config");
     setView("create");
   }
@@ -203,6 +207,8 @@ export default function BoardFieldsPopup({ t }) {
         ? JSON.parse(JSON.stringify(field.checklistItems))
         : [...DEFAULT_CHECKLIST_ITEMS]
     );
+    setMultiline(Boolean(field.multiline));
+    setPlaceholder(field.placeholder || "");
     setStepTab("config");
     setView("create");
   }
@@ -287,6 +293,9 @@ export default function BoardFieldsPopup({ t }) {
       conditionalValue: conditionalValue.trim() || undefined,
     } : type === "checkbox" ? {
       checklistItems: checklistItems.filter((item) => item.text && item.text.trim()),
+    } : type === "text" ? {
+      multiline: Boolean(multiline),
+      placeholder: placeholder.trim() || undefined,
     } : {};
 
     let updated;
@@ -766,11 +775,11 @@ export default function BoardFieldsPopup({ t }) {
                             />
                             <button
                               type="button"
-                              className="cf-btn-icon-danger"
+                              className="cf-checklist-delete-btn"
                               onClick={() => handleRemoveChecklistItem(idx)}
                               title="Delete Item"
                             >
-                              <TrashIcon width={14} height={14} />
+                              <TrashIcon width={16} height={16} />
                             </button>
                           </div>
                         ))}
@@ -782,6 +791,32 @@ export default function BoardFieldsPopup({ t }) {
                       >
                         + Add Checkbox Item
                       </button>
+                    </div>
+                  </div>
+                ) : type === "text" ? (
+                  <div className="cf-settings-panel">
+                    <h3>Text Specific Settings</h3>
+
+                    <div className="cf-form-group" style={{ marginBottom: 16 }}>
+                      <label className="cf-checkbox-row">
+                        <input
+                          type="checkbox"
+                          checked={multiline}
+                          onChange={(e) => setMultiline(e.target.checked)}
+                        />
+                        <span>Multiline Textarea (for long notes, summaries)</span>
+                      </label>
+                    </div>
+
+                    <div className="cf-form-group">
+                      <label className="cf-form-label">Placeholder Text</label>
+                      <input
+                        type="text"
+                        className="cf-form-input"
+                        placeholder="Enter notes..."
+                        value={placeholder}
+                        onChange={(e) => setPlaceholder(e.target.value)}
+                      />
                     </div>
                   </div>
                 ) : (

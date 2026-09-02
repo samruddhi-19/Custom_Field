@@ -146,13 +146,23 @@ export default function CardFieldsPopup({ t }) {
               <label style={styles.label}>{field.name}</label>
 
               {field.type === "text" && (
-                <input
-                  type="text"
-                  style={styles.input}
-                  placeholder={`Enter ${field.name}...`}
-                  value={val || ""}
-                  onChange={(e) => handleChange(field.id, e.target.value)}
-                />
+                field.multiline ? (
+                  <textarea
+                    style={{ ...styles.input, minHeight: 65, resize: "vertical", fontFamily: "inherit" }}
+                    placeholder={field.placeholder || `Enter ${field.name}...`}
+                    value={val || ""}
+                    onChange={(e) => handleChange(field.id, e.target.value)}
+                    rows={3}
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    style={styles.input}
+                    placeholder={field.placeholder || `Enter ${field.name}...`}
+                    value={val || ""}
+                    onChange={(e) => handleChange(field.id, e.target.value)}
+                  />
+                )
               )}
 
               {field.type === "number" && (

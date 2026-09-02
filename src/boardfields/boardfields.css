@@ -682,6 +682,25 @@
   flex: 1;
 }
 
+.cf-checklist-delete-btn {
+  background: transparent;
+  border: none;
+  color: #7A869A;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--cf-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--cf-transition);
+}
+
+.cf-checklist-delete-btn:hover {
+  color: var(--cf-red);
+  background: rgba(248, 113, 104, 0.12);
+}
+
 .cf-btn-add-item-link {
   font-size: 12px;
   color: var(--cf-blue);
