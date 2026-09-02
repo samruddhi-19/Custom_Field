@@ -89,6 +89,17 @@ function formatBadge(field, value) {
       };
     }
 
+    case "yesno": {
+      if (value === undefined || value === null) return null;
+      const isYes = Boolean(value);
+      const text = isYes ? (field.yesLabel || "Approved") : (field.noLabel || "Pending");
+      return {
+        title: field.name,
+        text: `${field.name}: ${text}`,
+        color: isYes ? "green" : "light-gray",
+      };
+    }
+
     case "formula": {
       if (!value) return null;
       const symb = field.unitSymbol || (field.returnFormat === "currency" ? "$" : "");

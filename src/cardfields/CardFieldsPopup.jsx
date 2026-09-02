@@ -179,6 +179,47 @@ export default function CardFieldsPopup({ t }) {
                 </label>
               )}
 
+              {field.type === "yesno" && (
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <button
+                    type="button"
+                    onClick={() => handleChange(field.id, true)}
+                    style={{
+                      flex: 1,
+                      padding: "7px 12px",
+                      borderRadius: 4,
+                      border: val === true ? "1px solid #36B37E" : "1px solid #333C43",
+                      background: val === true ? "rgba(54, 179, 126, 0.2)" : "#1D2125",
+                      color: val === true ? "#4BCE97" : "#9FADBC",
+                      fontWeight: val === true ? 600 : 500,
+                      fontSize: 12.5,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    ✓ {field.yesLabel || "Approved"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleChange(field.id, false)}
+                    style={{
+                      flex: 1,
+                      padding: "7px 12px",
+                      borderRadius: 4,
+                      border: val === false ? "1px solid #7C5CFC" : "1px solid #333C43",
+                      background: val === false ? "rgba(124, 92, 252, 0.15)" : "#1D2125",
+                      color: val === false ? "#BDB4FE" : "#9FADBC",
+                      fontWeight: val === false ? 600 : 500,
+                      fontSize: 12.5,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {field.noLabel || "Pending"}
+                  </button>
+                </div>
+              )}
+
               {field.type === "rating" && (
                 <div style={{ display: "flex", gap: "4px" }}>
                   {[1, 2, 3, 4, 5].map((star) => {

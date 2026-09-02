@@ -103,6 +103,8 @@ export default function BoardFieldsPopup({ t }) {
   const [formula, setFormula] = useState("");
   const [returnFormat, setReturnFormat] = useState("currency");
   const [unitSymbol, setUnitSymbol] = useState("$");
+  const [yesLabel, setYesLabel] = useState("Approved");
+  const [noLabel, setNoLabel] = useState("Pending");
 
   useEffect(() => {
     async function load() {
@@ -148,6 +150,8 @@ export default function BoardFieldsPopup({ t }) {
     setFormula("");
     setReturnFormat("currency");
     setUnitSymbol("$");
+    setYesLabel("Approved");
+    setNoLabel("Pending");
     setStepTab("config");
     setView("create");
   }
@@ -167,6 +171,8 @@ export default function BoardFieldsPopup({ t }) {
     setFormula(field.formula || "");
     setReturnFormat(field.returnFormat || "currency");
     setUnitSymbol(field.unitSymbol || "$");
+    setYesLabel(field.yesLabel || "Approved");
+    setNoLabel(field.noLabel || "Pending");
     setStepTab("config");
     setView("create");
   }
@@ -223,6 +229,9 @@ export default function BoardFieldsPopup({ t }) {
       formula: formula.trim() || undefined,
       returnFormat: returnFormat || "currency",
       unitSymbol: unitSymbol.trim() || undefined,
+    } : type === "yesno" ? {
+      yesLabel: yesLabel.trim() || "Approved",
+      noLabel: noLabel.trim() || "Pending",
     } : {};
 
     let updated;
@@ -556,10 +565,7 @@ export default function BoardFieldsPopup({ t }) {
                         Click to insert field token into formula:
                       </div>
                       <div className="cf-tokens-wrapper">
-                        {Array.from(new Set([
-                          ...schema.filter((f) => f.name && (!editId || f.id !== editId)).map((f) => f.name),
-                          ...SAMPLE_TOKENS,
-                        ])).map((tName) => (
+                        {SAMPLE_TOKENS.map((tName) => (
                           <button
                             key={tName}
                             type="button"
@@ -596,6 +602,34 @@ export default function BoardFieldsPopup({ t }) {
                           placeholder="$"
                           value={unitSymbol}
                           onChange={(e) => setUnitSymbol(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : type === "yesno" ? (
+                  <div className="cf-settings-panel">
+                    <h3>Yesno Specific Settings</h3>
+
+                    <div className="cf-number-settings-grid">
+                      <div className="cf-form-group">
+                        <label className="cf-form-label">"Yes" State Label</label>
+                        <input
+                          type="text"
+                          className="cf-form-input"
+                          placeholder="Approved"
+                          value={yesLabel}
+                          onChange={(e) => setYesLabel(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="cf-form-group">
+                        <label className="cf-form-label">"No" State Label</label>
+                        <input
+                          type="text"
+                          className="cf-form-input"
+                          placeholder="Pending"
+                          value={noLabel}
+                          onChange={(e) => setNoLabel(e.target.value)}
                         />
                       </div>
                     </div>
