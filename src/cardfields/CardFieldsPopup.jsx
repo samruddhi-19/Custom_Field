@@ -26,6 +26,34 @@ function evaluateFormula(formula, schema, values) {
   return null;
 }
 
+function checkConditionalRule(field, schema, values) {
+  if (field.type !== "conditional" || !field.conditionalField) return true;
+  const targetField = schema.find((f) => f.name === field.conditionalField || f.id === field.conditionalField);
+  const actualVal = targetField ? values[targetField.id] : values[field.conditionalField];
+  const targetVal = field.conditionalValue;
+  const op = field.conditionalOperator || "equals";
+
+  if (op === "not_empty") {
+    return actualVal !== undefined && actualVal !== null && String(actualVal).trim() !== "";
+  }
+  if (op === "equals") {
+    return String(actualVal || "").toLowerCase() === String(targetVal || "").toLowerCase();
+  }
+  if (op === "not_equals") {
+    return String(actualVal || "").toLowerCase() !== String(targetVal || "").toLowerCase();
+  }
+  if (op === "contains") {
+    return String(actualVal || "").toLowerCase().includes(String(targetVal || "").toLowerCase());
+  }
+  if (op === "gt") {
+    return Number(actualVal) > Number(targetVal);
+  }
+  if (op === "lt") {
+    return Number(actualVal) < Number(targetVal);
+  }
+  return true;
+}
+
 export default function CardFieldsPopup({ t }) {
   const [schema, setSchema] = useState([]);
   const [values, setValues] = useState({});
@@ -168,15 +196,50 @@ export default function CardFieldsPopup({ t }) {
               )}
 
               {field.type === "checkbox" && (
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: 13 }}>
-                  <input
-                    type="checkbox"
-                    checked={Boolean(val)}
-                    onChange={(e) => handleChange(field.id, e.target.checked)}
-                    style={{ accentColor: "#579DFF" }}
-                  />
-                  <span>Active / Done</span>
-                </label>
+                field.checklistItems && field.checklistItems.length > 0 ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {field.checklistItems.map((item) => {
+                      const isChecked = Boolean(typeof val === "object" ? val?.[item.id] : false);
+                      return (
+                        <label
+                          key={item.id}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            cursor: "pointer",
+                            fontSize: 13,
+                            color: isChecked ? "#9FADBC" : "#DCDFE4",
+                            textDecoration: isChecked ? "line-through" : "none",
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              const currentMap = (typeof val === "object" && val) ? { ...val } : {};
+                              if (e.target.checked) currentMap[item.id] = true;
+                              else delete currentMap[item.id];
+                              handleChange(field.id, currentMap);
+                            }}
+                            style={{ accentColor: "#579DFF", cursor: "pointer" }}
+                          />
+                          <span>{item.text}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: 13 }}>
+                    <input
+                      type="checkbox"
+                      checked={Boolean(val)}
+                      onChange={(e) => handleChange(field.id, e.target.checked)}
+                      style={{ accentColor: "#579DFF" }}
+                    />
+                    <span>Active / Done</span>
+                  </label>
+                )
               )}
 
               {field.type === "yesno" && (
@@ -275,6 +338,16 @@ export default function CardFieldsPopup({ t }) {
                   </div>
                 );
               })()}
+
+              {field.type === "conditional" && (
+                <input
+                  type="text"
+                  style={styles.input}
+                  placeholder={`Enter ${field.name}...`}
+                  value={val || ""}
+                  onChange={(e) => handleChange(field.id, e.target.value)}
+                />
+              )}
             </div>
           );
         })}

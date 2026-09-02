@@ -71,13 +71,24 @@ function formatBadge(field, value) {
       };
     }
 
-    case "checkbox":
+    case "checkbox": {
       if (!value) return null;
+      if (field.checklistItems && Array.isArray(field.checklistItems) && field.checklistItems.length > 0) {
+        const total = field.checklistItems.length;
+        const checkedCount = field.checklistItems.filter((it) => typeof value === "object" && value?.[it.id]).length;
+        if (checkedCount === 0) return null;
+        return {
+          title: field.name,
+          text: `✓ ${checkedCount}/${total}`,
+          color: checkedCount === total ? "green" : "blue",
+        };
+      }
       return {
         title: field.name,
         text: `✓ ${field.name}`,
         color: "green",
       };
+    }
 
     case "rating": {
       const rating = parseInt(value, 10);
@@ -117,9 +128,46 @@ function formatBadge(field, value) {
       };
     }
 
+    case "conditional": {
+      if (!value) return null;
+      return {
+        title: field.name,
+        text: String(value),
+        color: "blue",
+      };
+    }
+
     default:
       return null;
   }
+}
+
+function checkConditionalRule(field, schema, values) {
+  if (field.type !== "conditional" || !field.conditionalField) return true;
+  const targetField = schema.find((f) => f.name === field.conditionalField || f.id === field.conditionalField);
+  const actualVal = targetField ? values[targetField.id] : values[field.conditionalField];
+  const targetVal = field.conditionalValue;
+  const op = field.conditionalOperator || "equals";
+
+  if (op === "not_empty") {
+    return actualVal !== undefined && actualVal !== null && String(actualVal).trim() !== "";
+  }
+  if (op === "equals") {
+    return String(actualVal || "").toLowerCase() === String(targetVal || "").toLowerCase();
+  }
+  if (op === "not_equals") {
+    return String(actualVal || "").toLowerCase() !== String(targetVal || "").toLowerCase();
+  }
+  if (op === "contains") {
+    return String(actualVal || "").toLowerCase().includes(String(targetVal || "").toLowerCase());
+  }
+  if (op === "gt") {
+    return Number(actualVal) > Number(targetVal);
+  }
+  if (op === "lt") {
+    return Number(actualVal) < Number(targetVal);
+  }
+  return true;
 }
 
 function evaluateFormula(formula, schema, values) {
@@ -227,6 +275,7 @@ TrelloPowerUp.initialize({
     const badges = [];
     schema.forEach((field) => {
       if (field.showBadgeFront === false) return;
+      if (!checkConditionalRule(field, schema, values)) return;
       const val = field.type === "formula" ? evaluateFormula(field.formula, schema, values) : values[field.id];
       const badge = formatBadge(field, val);
       if (badge) {
@@ -250,6 +299,7 @@ TrelloPowerUp.initialize({
 
     const detailBadges = [];
     schema.forEach((field) => {
+      if (!checkConditionalRule(field, schema, values)) return;
       const val = field.type === "formula" ? evaluateFormula(field.formula, schema, values) : values[field.id];
       const badge = formatBadge(field, val);
       if (badge) {

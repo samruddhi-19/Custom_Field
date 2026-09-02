@@ -105,6 +105,13 @@ export default function BoardFieldsPopup({ t }) {
   const [unitSymbol, setUnitSymbol] = useState("$");
   const [yesLabel, setYesLabel] = useState("Approved");
   const [noLabel, setNoLabel] = useState("Pending");
+  const [conditionalField, setConditionalField] = useState("");
+  const [conditionalOperator, setConditionalOperator] = useState("equals");
+  const [conditionalValue, setConditionalValue] = useState("");
+  const [checklistItems, setChecklistItems] = useState([
+    { id: "chk_1", text: "Requirement 1" },
+    { id: "chk_2", text: "Requirement 2" },
+  ]);
 
   useEffect(() => {
     async function load() {
@@ -128,10 +135,21 @@ export default function BoardFieldsPopup({ t }) {
     { id: "opt_default_low", text: "Low Priority", color: "#36b37e" },
   ];
 
+  const DEFAULT_CHECKLIST_ITEMS = [
+    { id: "chk_1", text: "Requirement 1" },
+    { id: "chk_2", text: "Requirement 2" },
+  ];
+
   const SAMPLE_TOKENS = [
     "Priority Level", "Story Points", "Billable Hours", "Hourly Rate",
     "Target Deployment Date & Time", "QA Sign-off", "SLA Escalation Required",
     "Security & Compliance", "Customer Release Note",
+  ];
+
+  const CONDITIONAL_SAMPLE_FIELDS = [
+    "Priority Level", "Story Points", "Billable Hours", "Hourly Rate",
+    "Total Feature Budget", "Target Deployment Date & Time", "QA Sign-off",
+    "SLA Escalation Required", "Security & Compliance", "Customer Release Note",
   ];
 
   function handleStartAdd(preselectedType) {
@@ -152,6 +170,10 @@ export default function BoardFieldsPopup({ t }) {
     setUnitSymbol("$");
     setYesLabel("Approved");
     setNoLabel("Pending");
+    setConditionalField("");
+    setConditionalOperator("equals");
+    setConditionalValue("");
+    setChecklistItems([...DEFAULT_CHECKLIST_ITEMS]);
     setStepTab("config");
     setView("create");
   }
@@ -173,6 +195,14 @@ export default function BoardFieldsPopup({ t }) {
     setUnitSymbol(field.unitSymbol || "$");
     setYesLabel(field.yesLabel || "Approved");
     setNoLabel(field.noLabel || "Pending");
+    setConditionalField(field.conditionalField || "");
+    setConditionalOperator(field.conditionalOperator || "equals");
+    setConditionalValue(field.conditionalValue || "");
+    setChecklistItems(
+      field.checklistItems && field.checklistItems.length > 0
+        ? JSON.parse(JSON.stringify(field.checklistItems))
+        : [...DEFAULT_CHECKLIST_ITEMS]
+    );
     setStepTab("config");
     setView("create");
   }
@@ -201,6 +231,25 @@ export default function BoardFieldsPopup({ t }) {
 
   function handleRemoveOption(idx) {
     setOptions(options.filter((_, i) => i !== idx));
+  }
+
+  function handleAddChecklistItem() {
+    const newIndex = checklistItems.length + 1;
+    setChecklistItems([
+      ...checklistItems,
+      {
+        id: "chk_" + Date.now() + "_" + Math.random().toString(36).substring(2, 5),
+        text: `New Item ${newIndex}`,
+      },
+    ]);
+  }
+
+  function handleChecklistItemTextChange(idx, newText) {
+    setChecklistItems(checklistItems.map((item, i) => (i === idx ? { ...item, text: newText } : item)));
+  }
+
+  function handleRemoveChecklistItem(idx) {
+    setChecklistItems(checklistItems.filter((_, i) => i !== idx));
   }
 
   function handleInsertToken(tokenName) {
@@ -232,6 +281,12 @@ export default function BoardFieldsPopup({ t }) {
     } : type === "yesno" ? {
       yesLabel: yesLabel.trim() || "Approved",
       noLabel: noLabel.trim() || "Pending",
+    } : type === "conditional" ? {
+      conditionalField: conditionalField || undefined,
+      conditionalOperator: conditionalOperator || "equals",
+      conditionalValue: conditionalValue.trim() || undefined,
+    } : type === "checkbox" ? {
+      checklistItems: checklistItems.filter((item) => item.text && item.text.trim()),
     } : {};
 
     let updated;
@@ -632,6 +687,101 @@ export default function BoardFieldsPopup({ t }) {
                           onChange={(e) => setNoLabel(e.target.value)}
                         />
                       </div>
+                    </div>
+                  </div>
+                ) : type === "conditional" ? (
+                  <div className="cf-settings-panel">
+                    <h3>Conditional Specific Settings</h3>
+
+                    <div className="cf-conditional-card">
+                      <div className="cf-conditional-title">
+                        Conditional Visibility & Trigger Rule:
+                      </div>
+
+                      <div className="cf-conditional-grid">
+                        <div className="cf-form-group" style={{ margin: 0 }}>
+                          <label className="cf-form-label">If Field</label>
+                          <select
+                            className="cf-form-input cf-select"
+                            value={conditionalField}
+                            onChange={(e) => setConditionalField(e.target.value)}
+                          >
+                            <option value="">-- Choose Field --</option>
+                            {Array.from(new Set([
+                              ...schema.filter((f) => f.name && (!editId || f.id !== editId)).map((f) => f.name),
+                              ...CONDITIONAL_SAMPLE_FIELDS,
+                            ])).map((fName) => (
+                              <option key={fName} value={fName}>
+                                {fName}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="cf-form-group" style={{ margin: 0 }}>
+                          <label className="cf-form-label">Operator</label>
+                          <select
+                            className="cf-form-input cf-select"
+                            value={conditionalOperator}
+                            onChange={(e) => setConditionalOperator(e.target.value)}
+                          >
+                            <option value="equals">Equals (=)</option>
+                            <option value="not_equals">Does Not Equal (≠)</option>
+                            <option value="contains">Contains</option>
+                            <option value="gt">Greater Than (&gt;)</option>
+                            <option value="lt">Less Than (&lt;)</option>
+                            <option value="not_empty">Is Not Empty</option>
+                          </select>
+                        </div>
+
+                        <div className="cf-form-group" style={{ margin: 0 }}>
+                          <label className="cf-form-label">Target Value</label>
+                          <input
+                            type="text"
+                            className="cf-form-input"
+                            placeholder="e.g. Critical"
+                            disabled={conditionalOperator === "not_empty"}
+                            value={conditionalValue}
+                            onChange={(e) => setConditionalValue(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : type === "checkbox" ? (
+                  <div className="cf-settings-panel">
+                    <h3>Checkbox Specific Settings</h3>
+
+                    <div className="cf-form-group">
+                      <label className="cf-form-label">Checklist Items</label>
+                      <div className="cf-checklist-items-list">
+                        {checklistItems.map((item, idx) => (
+                          <div key={item.id || idx} className="cf-checklist-item-row">
+                            <input
+                              type="text"
+                              className="cf-form-input"
+                              value={item.text}
+                              onChange={(e) => handleChecklistItemTextChange(idx, e.target.value)}
+                              placeholder={`Requirement ${idx + 1}`}
+                            />
+                            <button
+                              type="button"
+                              className="cf-btn-icon-danger"
+                              onClick={() => handleRemoveChecklistItem(idx)}
+                              title="Delete Item"
+                            >
+                              <TrashIcon width={14} height={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        className="cf-btn-add-item-link"
+                        onClick={handleAddChecklistItem}
+                      >
+                        + Add Checkbox Item
+                      </button>
                     </div>
                   </div>
                 ) : (
