@@ -98,10 +98,12 @@ export default function CardFieldsPopup({ t }) {
   }
 
   function handleOpenBoardSettings() {
-    t.popup({
-      title: "Board Custom Fields",
+    t.modal({
+      title: "Custom Fields",
+      accentColor: "#1D2125",
       url: "./boardfields.html",
-      height: 380,
+      fullscreen: false,
+      height: 560,
     });
   }
 
