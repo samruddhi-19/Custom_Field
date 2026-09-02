@@ -111,10 +111,11 @@ TrelloPowerUp.initialize({
               height: 240,
             });
           }
-          return t.popup({
-            title: "Board Custom Fields",
+          return t.modal({
+            title: "Custom Fields Pro",
             url: "./boardfields.html",
-            height: 380,
+            fullscreen: false,
+            height: 560,
           });
         },
       },
