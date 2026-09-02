@@ -105,14 +105,19 @@ export default function CardFieldsPopup({ t }) {
               )}
 
               {field.type === "number" && (
-                <input
-                  type="number"
-                  step="any"
-                  style={styles.input}
-                  placeholder="0.00"
-                  value={val !== undefined && val !== null ? val : ""}
-                  onChange={(e) => handleChange(field.id, e.target.value === "" ? null : Number(e.target.value))}
-                />
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  {field.prefix && <span style={{ color: "#9FADBC", fontSize: 13, fontWeight: 600 }}>{field.prefix}</span>}
+                  <input
+                    type="number"
+                    step={field.decimalPlaces ? `0.${"0".repeat(Math.max(0, field.decimalPlaces - 1))}1` : "any"}
+                    min={field.minValue !== undefined ? field.minValue : undefined}
+                    style={styles.input}
+                    placeholder="0"
+                    value={val !== undefined && val !== null ? val : ""}
+                    onChange={(e) => handleChange(field.id, e.target.value === "" ? null : Number(e.target.value))}
+                  />
+                  {field.suffix && <span style={{ color: "#9FADBC", fontSize: 13, fontWeight: 500 }}>{field.suffix}</span>}
+                </div>
               )}
 
               {field.type === "dropdown" && (

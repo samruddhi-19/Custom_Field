@@ -39,12 +39,17 @@ function formatBadge(field, value) {
         color: null,
       };
 
-    case "number":
+    case "number": {
+      let numVal = Number(value);
+      let numStr = isNaN(numVal) ? String(value) : (field.decimalPlaces !== undefined && field.decimalPlaces !== null && field.decimalPlaces !== "" ? numVal.toFixed(Number(field.decimalPlaces)) : String(value));
+      const prefix = field.prefix || "";
+      const suffix = field.suffix ? ` ${field.suffix}` : "";
       return {
         title: field.name,
-        text: `${field.name}: ${value}`,
+        text: `${prefix}${numStr}${suffix}`,
         color: null,
       };
+    }
 
     case "dropdown": {
       if (!field.options || !Array.isArray(field.options)) return null;

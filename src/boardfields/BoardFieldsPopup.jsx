@@ -94,6 +94,10 @@ export default function BoardFieldsPopup({ t }) {
   const [type, setType] = useState("dropdown");
   const [showBadgeFront, setShowBadgeFront] = useState(true);
   const [options, setOptions] = useState([]);
+  const [prefix, setPrefix] = useState("");
+  const [suffix, setSuffix] = useState("");
+  const [minValue, setMinValue] = useState("0");
+  const [decimalPlaces, setDecimalPlaces] = useState("0");
 
   useEffect(() => {
     async function load() {
@@ -125,6 +129,10 @@ export default function BoardFieldsPopup({ t }) {
     setType(selectedType);
     setShowBadgeFront(true);
     setOptions(selectedType === "dropdown" ? [...DEFAULT_DROPDOWN_OPTIONS] : []);
+    setPrefix("");
+    setSuffix("");
+    setMinValue("0");
+    setDecimalPlaces("0");
     setStepTab("config");
     setView("create");
   }
@@ -136,6 +144,10 @@ export default function BoardFieldsPopup({ t }) {
     setType(field.type);
     setShowBadgeFront(field.showBadgeFront !== false);
     setOptions(field.options ? JSON.parse(JSON.stringify(field.options)) : []);
+    setPrefix(field.prefix || "");
+    setSuffix(field.suffix || "");
+    setMinValue(field.minValue !== undefined && field.minValue !== null ? String(field.minValue) : "0");
+    setDecimalPlaces(field.decimalPlaces !== undefined && field.decimalPlaces !== null ? String(field.decimalPlaces) : "0");
     setStepTab("config");
     setView("create");
   }
@@ -176,6 +188,13 @@ export default function BoardFieldsPopup({ t }) {
       return;
     }
 
+    const numberConfig = type === "number" ? {
+      prefix: prefix.trim() || undefined,
+      suffix: suffix.trim() || undefined,
+      minValue: minValue !== "" ? Number(minValue) : undefined,
+      decimalPlaces: decimalPlaces !== "" ? Number(decimalPlaces) : 0,
+    } : {};
+
     let updated;
     if (editId) {
       updated = schema.map((f) =>
@@ -187,6 +206,7 @@ export default function BoardFieldsPopup({ t }) {
               type,
               options: type === "dropdown" ? options : undefined,
               showBadgeFront,
+              ...numberConfig,
             }
           : f
       );
@@ -198,6 +218,7 @@ export default function BoardFieldsPopup({ t }) {
         type,
         options: type === "dropdown" ? options : undefined,
         showBadgeFront,
+        ...numberConfig,
       };
       updated = [...schema, newField];
     }
@@ -389,6 +410,58 @@ export default function BoardFieldsPopup({ t }) {
                           </button>
                         </div>
                       ))}
+                    </div>
+                  </div>
+                ) : type === "number" ? (
+                  <div className="cf-settings-panel">
+                    <h3>Number Specific Settings</h3>
+
+                    <div className="cf-number-settings-grid">
+                      <div className="cf-form-group">
+                        <label className="cf-form-label">Prefix (e.g. $)</label>
+                        <input
+                          type="text"
+                          className="cf-form-input"
+                          placeholder="$"
+                          value={prefix}
+                          onChange={(e) => setPrefix(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="cf-form-group">
+                        <label className="cf-form-label">Suffix (e.g. hrs, pts, %)</label>
+                        <input
+                          type="text"
+                          className="cf-form-input"
+                          placeholder="hrs"
+                          value={suffix}
+                          onChange={(e) => setSuffix(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="cf-form-group">
+                        <label className="cf-form-label">Min Value</label>
+                        <input
+                          type="number"
+                          className="cf-form-input"
+                          placeholder="0"
+                          value={minValue}
+                          onChange={(e) => setMinValue(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="cf-form-group">
+                        <label className="cf-form-label">Decimal Places</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="6"
+                          className="cf-form-input"
+                          placeholder="0"
+                          value={decimalPlaces}
+                          onChange={(e) => setDecimalPlaces(e.target.value)}
+                        />
+                      </div>
                     </div>
                   </div>
                 ) : (
