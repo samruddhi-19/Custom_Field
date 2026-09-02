@@ -137,7 +137,7 @@ export default function CardFieldsPopup({ t }) {
 
               {field.type === "date" && (
                 <input
-                  type="date"
+                  type={field.dateTimeMode === "time" ? "time" : field.dateTimeMode === "date" ? "date" : "datetime-local"}
                   style={styles.input}
                   value={val || ""}
                   onChange={(e) => handleChange(field.id, e.target.value)}

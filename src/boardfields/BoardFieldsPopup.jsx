@@ -5,6 +5,7 @@ import {
   ExportIcon, ImportIcon, LockIcon, FieldsIcon,
   DropdownIcon, NumberIcon, DateTimeIcon, FormulaIcon,
   YesNoIcon, ConditionalIcon, CheckboxIcon, TextIcon,
+  ClockIcon, CalendarIcon,
 } from "../ui/icons.jsx";
 import "./boardfields.css";
 
@@ -98,6 +99,7 @@ export default function BoardFieldsPopup({ t }) {
   const [suffix, setSuffix] = useState("");
   const [minValue, setMinValue] = useState("0");
   const [decimalPlaces, setDecimalPlaces] = useState("0");
+  const [dateTimeMode, setDateTimeMode] = useState("datetime");
 
   useEffect(() => {
     async function load() {
@@ -133,6 +135,7 @@ export default function BoardFieldsPopup({ t }) {
     setSuffix("");
     setMinValue("0");
     setDecimalPlaces("0");
+    setDateTimeMode("datetime");
     setStepTab("config");
     setView("create");
   }
@@ -148,6 +151,7 @@ export default function BoardFieldsPopup({ t }) {
     setSuffix(field.suffix || "");
     setMinValue(field.minValue !== undefined && field.minValue !== null ? String(field.minValue) : "0");
     setDecimalPlaces(field.decimalPlaces !== undefined && field.decimalPlaces !== null ? String(field.decimalPlaces) : "0");
+    setDateTimeMode(field.dateTimeMode || "datetime");
     setStepTab("config");
     setView("create");
   }
@@ -188,11 +192,13 @@ export default function BoardFieldsPopup({ t }) {
       return;
     }
 
-    const numberConfig = type === "number" ? {
+    const typeConfig = type === "number" ? {
       prefix: prefix.trim() || undefined,
       suffix: suffix.trim() || undefined,
       minValue: minValue !== "" ? Number(minValue) : undefined,
       decimalPlaces: decimalPlaces !== "" ? Number(decimalPlaces) : 0,
+    } : type === "date" ? {
+      dateTimeMode: dateTimeMode || "datetime",
     } : {};
 
     let updated;
@@ -206,7 +212,7 @@ export default function BoardFieldsPopup({ t }) {
               type,
               options: type === "dropdown" ? options : undefined,
               showBadgeFront,
-              ...numberConfig,
+              ...typeConfig,
             }
           : f
       );
@@ -218,7 +224,7 @@ export default function BoardFieldsPopup({ t }) {
         type,
         options: type === "dropdown" ? options : undefined,
         showBadgeFront,
-        ...numberConfig,
+        ...typeConfig,
       };
       updated = [...schema, newField];
     }
@@ -461,6 +467,45 @@ export default function BoardFieldsPopup({ t }) {
                           value={decimalPlaces}
                           onChange={(e) => setDecimalPlaces(e.target.value)}
                         />
+                      </div>
+                    </div>
+                  </div>
+                ) : type === "date" ? (
+                  <div className="cf-settings-panel">
+                    <h3>Datetime Specific Settings</h3>
+
+                    <div className="cf-form-group">
+                      <label className="cf-form-label">Date & Time Mode</label>
+                      <div className="cf-mode-selector-grid">
+                        <div
+                          className={`cf-mode-card ${dateTimeMode === "date" ? "selected" : ""}`}
+                          onClick={() => setDateTimeMode("date")}
+                        >
+                          <div className="cf-mode-card-icon">
+                            <CalendarIcon width={16} height={16} />
+                          </div>
+                          <div className="cf-mode-card-name">Date Only</div>
+                        </div>
+
+                        <div
+                          className={`cf-mode-card ${dateTimeMode === "time" ? "selected" : ""}`}
+                          onClick={() => setDateTimeMode("time")}
+                        >
+                          <div className="cf-mode-card-icon">
+                            <ClockIcon width={16} height={16} />
+                          </div>
+                          <div className="cf-mode-card-name">Time Only</div>
+                        </div>
+
+                        <div
+                          className={`cf-mode-card ${dateTimeMode === "datetime" ? "selected" : ""}`}
+                          onClick={() => setDateTimeMode("datetime")}
+                        >
+                          <div className="cf-mode-card-icon">
+                            <DateTimeIcon width={16} height={16} />
+                          </div>
+                          <div className="cf-mode-card-name">Both Date & Time</div>
+                        </div>
                       </div>
                     </div>
                   </div>
