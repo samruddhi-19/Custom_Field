@@ -522,33 +522,19 @@ export default function BoardFieldsPopup({ t }) {
       {/* Content */}
       <div className="cf-content">
         {mainTab === "all" && (
-          <>
-            {/* Left: Field Type Grid */}
-            <div className="cf-content-left">
-              <div className="cf-field-type-grid">
-                {FIELD_TYPES.map((ft) => (
-                  <div
-                    key={ft.value}
-                    className="cf-field-type-card"
-                    onClick={() => handleStartAdd(ft.value)}
-                  >
-                    <div className="cf-field-type-card-icon">
-                      <ft.Icon width={18} height={18} />
-                    </div>
-                    <div className="cf-field-type-card-info">
-                      <div className="cf-field-type-card-name">{ft.label}</div>
-                      <div className="cf-field-type-card-desc">{ft.desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <div className="cf-content-left" style={{ borderRight: "none" }}>
+              {/* Add New Field Button */}
+              <button
+                type="button"
+                className="cf-btn-new-field"
+                onClick={() => handleStartAdd()}
+              >
+                + New Custom Field
+              </button>
 
               {/* Existing Fields List */}
-              {schema.length > 0 && (
+              {schema.length > 0 ? (
                 <div className="cf-fields-list">
-                  <div className="cf-section-title">
-                    Existing Fields ({schema.length})
-                  </div>
                   {schema.map((field) => (
                     <div key={field.id} className="cf-field-item">
                       <div className="cf-field-item-info">
@@ -582,16 +568,15 @@ export default function BoardFieldsPopup({ t }) {
                     </div>
                   ))}
                 </div>
+              ) : (
+                <div className="cf-empty-state">
+                  <p>No custom fields created yet.</p>
+                  <p style={{ fontSize: 12, color: "var(--cf-text-muted)" }}>
+                    Click "+ New Custom Field" to get started.
+                  </p>
+                </div>
               )}
             </div>
-
-            {/* Right: Empty Space (placeholder for future content) */}
-            <div className="cf-content-right">
-              <div className="cf-placeholder">
-                {/* Empty space for future content */}
-              </div>
-            </div>
-          </>
         )}
 
         {mainTab === "permissions" && (

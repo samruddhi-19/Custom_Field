@@ -648,6 +648,28 @@
   background: var(--cf-bg-tertiary);
 }
 
+/* ─── New Custom Field Button ─── */
+.cf-btn-new-field {
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: var(--cf-radius);
+  border: 1px dashed var(--cf-border-subtle);
+  background: var(--cf-bg-secondary);
+  color: var(--cf-accent-hover);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--cf-transition), border-color var(--cf-transition), color var(--cf-transition);
+  font-family: var(--cf-font);
+  letter-spacing: 0.2px;
+}
+
+.cf-btn-new-field:hover {
+  background: var(--cf-accent-bg);
+  border-color: var(--cf-accent);
+  color: #fff;
+}
+
 /* ─── Existing Fields List ─── */
 .cf-fields-list {
   display: flex;
