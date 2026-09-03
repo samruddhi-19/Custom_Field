@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getBoardSchema, saveBoardSchema } from "../lib/trelloApi.js";
+import { getBoardSchema, saveBoardSchema, getCurrentMember } from "../lib/trelloApi.js";
 import {
   TrashIcon, EditIcon, SpinnerIcon, CloseIcon,
   LockIcon, FieldsIcon, DropdownIcon, NumberIcon,
@@ -214,7 +214,15 @@ export default function BoardFieldsPopup({ t }) {
 
   // Search & Simulation states
   const [searchQuery, setSearchQuery] = useState("");
-  const [simulatedRole, setSimulatedRole] = useState("Alex Morgan (Board Administrator)");
+  const [boardAdminName, setBoardAdminName] = useState("Board Administrator");
+  const [simulatedRole, setSimulatedRole] = useState("Board Administrator (Board Administrator)");
+  const [memberOptions, setMemberOptions] = useState([]);
+
+  // In-app Delete Confirmation state
+  const [deleteTargetField, setDeleteTargetField] = useState(null);
+
+  // Form error state (in-app validation)
+  const [formError, setFormError] = useState("");
 
   // Form states
   const [name, setName] = useState("");
@@ -256,6 +264,47 @@ export default function BoardFieldsPopup({ t }) {
         console.error(err);
       } finally {
         setLoading(false);
+      }
+
+      // Fetch actual Trello board admin and current member name
+      try {
+        let currentName = "";
+        if (t && typeof t.member === "function") {
+          const mem = await t.member("id", "fullName", "username");
+          if (mem?.fullName) currentName = mem.fullName;
+          else if (mem?.username) currentName = mem.username;
+        }
+
+        if (!currentName && t) {
+          const apiMem = await getCurrentMember(t).catch(() => null);
+          if (apiMem?.fullName) currentName = apiMem.fullName;
+          else if (apiMem?.username) currentName = apiMem.username;
+        }
+
+        let boardMembers = [];
+        if (t && typeof t.board === "function") {
+          try {
+            const bData = await t.board("members");
+            if (Array.isArray(bData?.members)) {
+              boardMembers = bData.members.map((m) => m.fullName || m.username).filter(Boolean);
+            }
+          } catch {}
+        }
+
+        const primaryName = currentName || boardMembers[0] || "Board Administrator";
+        setBoardAdminName(primaryName);
+        setSimulatedRole(`${primaryName} (Board Administrator)`);
+
+        const opts = [
+          `${primaryName} (Board Administrator)`,
+          ...boardMembers.filter((m) => m !== primaryName).map((m) => `${m} (Board Member)`),
+          `${primaryName} (Project Lead)`,
+          `${primaryName} (Card Member)`,
+          "Guest Viewer (Read-only)",
+        ];
+        setMemberOptions(Array.from(new Set(opts)));
+      } catch (e) {
+        console.warn("Could not fetch Trello member details:", e);
       }
     }
     load();
@@ -311,6 +360,7 @@ export default function BoardFieldsPopup({ t }) {
     setChecklistItems([...DEFAULT_CHECKLIST_ITEMS]);
     setMultiline(false);
     setPlaceholder("");
+    setFormError("");
     setStepTab("config");
     setView("create");
   }
@@ -343,6 +393,7 @@ export default function BoardFieldsPopup({ t }) {
     );
     setMultiline(Boolean(field.multiline));
     setPlaceholder(field.placeholder || "");
+    setFormError("");
     setStepTab("config");
     setView("create");
   }
@@ -399,13 +450,14 @@ export default function BoardFieldsPopup({ t }) {
 
   async function handleSaveField() {
     if (!name.trim()) {
-      alert("Please enter a field name.");
+      setFormError("Please enter a field name.");
       return;
     }
     if (type === "dropdown" && options.length === 0) {
-      alert("Please add at least one dropdown option.");
+      setFormError("Please add at least one dropdown option.");
       return;
     }
+    setFormError("");
 
     const typeConfig = type === "number" ? {
       prefix: prefix.trim() || undefined,
@@ -470,11 +522,21 @@ export default function BoardFieldsPopup({ t }) {
     await saveBoardSchema(t, updated);
   }
 
-  async function handleDeleteField(id) {
-    if (!confirm("Are you sure you want to delete this custom field?")) return;
-    const updated = schema.filter((f) => f.id !== id);
-    setSchema(updated);
-    await saveBoardSchema(t, updated);
+  function handleRequestDelete(field) {
+    setDeleteTargetField(field);
+  }
+
+  async function handleConfirmDelete() {
+    if (!deleteTargetField) return;
+    const targetId = deleteTargetField.id;
+    const next = schema.filter((f) => f.id !== targetId);
+    setSchema(next);
+    setDeleteTargetField(null);
+    await saveBoardSchema(t, next);
+  }
+
+  function handleCancelDelete() {
+    setDeleteTargetField(null);
   }
 
   function handleMoveField(idx, direction) {
@@ -578,6 +640,7 @@ export default function BoardFieldsPopup({ t }) {
             <>
               {/* Left: Form */}
               <div className="cf-content-left">
+                {formError && <div className="cf-form-alert">{formError}</div>}
                 <div className="cf-form-group">
                   <label className="cf-form-label">
                     Field Name <span className="cf-required">*</span>
@@ -1226,14 +1289,6 @@ export default function BoardFieldsPopup({ t }) {
             Manage field types, calculations, card front badges, and <span className="cf-lock-inline"><LockIcon width={11} height={11} /></span> field-level edit permissions.
           </div>
         </div>
-        <button
-          type="button"
-          className="cf-btn-close"
-          onClick={handleClose}
-          title="Close"
-        >
-          <CloseIcon width={16} height={16} />
-        </button>
       </div>
 
       {/* Main Dashboard Container */}
@@ -1378,7 +1433,7 @@ export default function BoardFieldsPopup({ t }) {
                         <button
                           type="button"
                           className="cf-action-btn danger"
-                          onClick={() => handleDeleteField(field.id)}
+                          onClick={() => handleRequestDelete(field)}
                           title="Delete Custom Field"
                         >
                           <TrashIcon width={14} height={14} />
@@ -1413,21 +1468,25 @@ export default function BoardFieldsPopup({ t }) {
               value={simulatedRole}
               onChange={(e) => setSimulatedRole(e.target.value)}
             >
-              <option value="Alex Morgan (Board Administrator)">
-                Alex Morgan (Board Administrator)
-              </option>
-              <option value="Jordan Lee (Project Lead)">
-                Jordan Lee (Project Lead)
-              </option>
-              <option value="Taylor Reed (Finance & Billing)">
-                Taylor Reed (Finance & Billing)
-              </option>
-              <option value="Sam Davis (Card Member)">
-                Sam Davis (Card Member)
-              </option>
-              <option value="Guest Viewer (Read-only)">
-                Guest Viewer (Read-only)
-              </option>
+              {memberOptions.length > 0 ? (
+                memberOptions.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))
+              ) : (
+                <>
+                  <option value={`${boardAdminName} (Board Administrator)`}>
+                    {boardAdminName} (Board Administrator)
+                  </option>
+                  <option value={`${boardAdminName} (Project Lead)`}>
+                    {boardAdminName} (Project Lead)
+                  </option>
+                  <option value="Guest Viewer (Read-only)">
+                    Guest Viewer (Read-only)
+                  </option>
+                </>
+              )}
             </select>
           </div>
 
@@ -1440,6 +1499,39 @@ export default function BoardFieldsPopup({ t }) {
           </button>
         </div>
       </div>
+
+      {/* In-App Delete Confirmation Modal */}
+      {deleteTargetField && (
+        <div className="cf-confirm-overlay" onClick={handleCancelDelete}>
+          <div className="cf-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="cf-confirm-header">
+              <div className="cf-confirm-icon-danger">
+                <TrashIcon width={20} height={20} />
+              </div>
+              <h3 className="cf-confirm-title">Delete Custom Field</h3>
+            </div>
+            <p className="cf-confirm-body">
+              Are you sure you want to delete <span className="cf-confirm-field-name">"{deleteTargetField.name}"</span>? This will permanently remove this field and its values from all cards on this board.
+            </p>
+            <div className="cf-confirm-actions">
+              <button
+                type="button"
+                className="cf-btn-cancel"
+                onClick={handleCancelDelete}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="cf-btn-delete-confirm"
+                onClick={handleConfirmDelete}
+              >
+                Delete Field
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
