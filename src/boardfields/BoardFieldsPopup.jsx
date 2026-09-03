@@ -7,6 +7,7 @@ import {
   CheckboxIcon, TextIcon, CalendarIcon, SparkleIcon,
   LayersIcon, ArrowUpIcon, ArrowDownIcon, CopyIcon,
   CalculatorIcon, SearchIcon, HashIcon, MemoIcon,
+  ClockIcon, ShieldIcon, TemplateIcon, CheckIcon,
 } from "../ui/icons.jsx";
 import "./boardfields.css";
 
