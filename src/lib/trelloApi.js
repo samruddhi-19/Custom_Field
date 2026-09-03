@@ -41,11 +41,35 @@ export function getCurrentMember(t) {
 
 // Custom Field Schema on Board
 export async function getBoardSchema(t) {
-  const schema = await t.get("board", "shared", "custom_fields_schema", []);
-  return Array.isArray(schema) ? schema : [];
+  if (!t || typeof t.get !== "function") {
+    try {
+      const raw = localStorage.getItem("custom_fields_schema");
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return [];
+  }
+  try {
+    const schema = await t.get("board", "shared", "custom_fields_schema", []);
+    return Array.isArray(schema) ? schema : [];
+  } catch {
+    try {
+      const raw = localStorage.getItem("custom_fields_schema");
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return [];
+  }
 }
 
 export function saveBoardSchema(t, schema) {
+  if (!t || typeof t.set !== "function") {
+    try {
+      localStorage.setItem("custom_fields_schema", JSON.stringify(schema));
+    } catch {}
+    return Promise.resolve();
+  }
+  try {
+    localStorage.setItem("custom_fields_schema", JSON.stringify(schema));
+  } catch {}
   return t.set("board", "shared", "custom_fields_schema", schema);
 }
 

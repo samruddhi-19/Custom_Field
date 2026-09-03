@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { getBoardSchema, saveBoardSchema } from "../lib/trelloApi.js";
 import {
   TrashIcon, EditIcon, SpinnerIcon, CloseIcon,
-  ExportIcon, ImportIcon, LockIcon, FieldsIcon,
-  DropdownIcon, NumberIcon, DateTimeIcon, FormulaIcon,
-  YesNoIcon, ConditionalIcon, CheckboxIcon, TextIcon,
-  ClockIcon, CalendarIcon,
+  LockIcon, FieldsIcon, DropdownIcon, NumberIcon,
+  DateTimeIcon, FormulaIcon, YesNoIcon, ConditionalIcon,
+  CheckboxIcon, TextIcon, CalendarIcon, SparkleIcon,
+  LayersIcon, ArrowUpIcon, ArrowDownIcon, CopyIcon,
+  CalculatorIcon, SearchIcon, HashIcon, MemoIcon,
 } from "../ui/icons.jsx";
 import "./boardfields.css";
 
@@ -72,6 +73,128 @@ const COLOR_OPTIONS = [
   { name: "Gray", value: "gray", bg: "#5e6c84" },
 ];
 
+export const INITIAL_FIELDS = [
+  {
+    id: "fld_priority",
+    name: "Priority Level",
+    type: "dropdown",
+    description: "Urgency and impact of this task",
+    editPermission: "Roles: Board Admin, Project Lead",
+    showBadgeFront: true,
+    scope: "All",
+    options: [
+      { id: "opt_high", text: "High Priority", color: "#de350b" },
+      { id: "opt_med", text: "Medium Priority", color: "#0052cc" },
+      { id: "opt_low", text: "Low Priority", color: "#36b37e" },
+    ],
+  },
+  {
+    id: "fld_points",
+    name: "Story Points",
+    type: "number",
+    description: "Effort estimation in Fibonacci points",
+    editPermission: "Card Members Only",
+    showBadgeFront: true,
+    scope: "All",
+    minValue: 0,
+    decimalPlaces: 0,
+    suffix: "pts",
+  },
+  {
+    id: "fld_hours",
+    name: "Billable Hours",
+    type: "number",
+    description: "Logged billable hours for client billing",
+    editPermission: "Card Members Only",
+    showBadgeFront: false,
+    scope: "All",
+    minValue: 0,
+    decimalPlaces: 1,
+    suffix: "hrs",
+  },
+  {
+    id: "fld_rate",
+    name: "Hourly Rate",
+    type: "number",
+    description: "Contracted hourly billing rate",
+    editPermission: "Roles: Board Admin, Finance Team",
+    showBadgeFront: false,
+    scope: "All",
+    prefix: "$",
+    minValue: 0,
+    decimalPlaces: 2,
+  },
+  {
+    id: "fld_budget",
+    name: "Total Feature Budget",
+    type: "formula",
+    description: "Calculated feature cost based on hours and rate",
+    editPermission: "Auto Calculated",
+    showBadgeFront: true,
+    scope: "All",
+    formula: "([Billable Hours] * [Hourly Rate])",
+    returnFormat: "currency",
+    unitSymbol: "$",
+  },
+  {
+    id: "fld_target_date",
+    name: "Target Deployment Date & Time",
+    type: "date",
+    description: "Scheduled release target",
+    editPermission: "Card Members Only",
+    showBadgeFront: true,
+    scope: "All",
+    dateTimeMode: "datetime",
+  },
+  {
+    id: "fld_qa",
+    name: "QA Sign-off",
+    type: "yesno",
+    description: "Quality assurance approval before deployment",
+    editPermission: "Roles: QA Lead, Board Admin",
+    showBadgeFront: true,
+    scope: "All",
+    yesLabel: "Approved",
+    noLabel: "Pending",
+  },
+  {
+    id: "fld_sla",
+    name: "SLA Escalation Required",
+    type: "conditional",
+    description: "Triggers escalation if SLA is breached",
+    editPermission: "Roles: Board Admin",
+    showBadgeFront: true,
+    scope: "All",
+    conditionalField: "Priority Level",
+    conditionalOperator: "equals",
+    conditionalValue: "High Priority",
+  },
+  {
+    id: "fld_security",
+    name: "Security & Compliance",
+    type: "checkbox",
+    description: "Mandatory security checklist items",
+    editPermission: "Anyone",
+    showBadgeFront: false,
+    scope: "All",
+    checklistItems: [
+      { id: "chk_sec_1", text: "Data Encryption Verified" },
+      { id: "chk_sec_2", text: "OWASP Top 10 Audited" },
+    ],
+  },
+  {
+    id: "fld_release_note",
+    name: "Customer Release Note",
+    type: "text",
+    description: "Customer-facing description of the feature or fix",
+    editPermission: "Anyone",
+    showBadgeFront: false,
+    scope: "All",
+    multiline: true,
+    placeholder: "Release notes for changelog...",
+  },
+];
+
 const STEP_TABS = ["config", "permissions", "display"];
 
 function getOptionColorHex(color) {
@@ -89,11 +212,16 @@ export default function BoardFieldsPopup({ t }) {
   const [stepTab, setStepTab] = useState("config");
   const [editId, setEditId] = useState(null);
 
+  // Search & Simulation states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [simulatedRole, setSimulatedRole] = useState("Alex Morgan (Board Administrator)");
+
   // Form states
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState("dropdown");
   const [showBadgeFront, setShowBadgeFront] = useState(true);
+  const [editPermission, setEditPermission] = useState("Card Members Only");
   const [options, setOptions] = useState([]);
   const [prefix, setPrefix] = useState("");
   const [suffix, setSuffix] = useState("");
@@ -118,7 +246,11 @@ export default function BoardFieldsPopup({ t }) {
   useEffect(() => {
     async function load() {
       try {
-        const s = await getBoardSchema(t);
+        let s = await getBoardSchema(t);
+        if (!Array.isArray(s) || s.length === 0) {
+          s = INITIAL_FIELDS;
+          await saveBoardSchema(t, s);
+        }
         setSchema(s);
       } catch (err) {
         console.error(err);
@@ -161,6 +293,7 @@ export default function BoardFieldsPopup({ t }) {
     setDescription("");
     setType(selectedType);
     setShowBadgeFront(true);
+    setEditPermission(selectedType === "formula" ? "Auto Calculated" : "Card Members Only");
     setOptions(selectedType === "dropdown" ? [...DEFAULT_DROPDOWN_OPTIONS] : []);
     setPrefix("");
     setSuffix("");
@@ -188,6 +321,7 @@ export default function BoardFieldsPopup({ t }) {
     setDescription(field.description || "");
     setType(field.type);
     setShowBadgeFront(field.showBadgeFront !== false);
+    setEditPermission(field.editPermission || (field.type === "formula" ? "Auto Calculated" : "Card Members Only"));
     setOptions(field.options ? JSON.parse(JSON.stringify(field.options)) : []);
     setPrefix(field.prefix || "");
     setSuffix(field.suffix || "");
@@ -298,6 +432,8 @@ export default function BoardFieldsPopup({ t }) {
       placeholder: placeholder.trim() || undefined,
     } : {};
 
+    const perm = type === "formula" ? "Auto Calculated" : (editPermission || "Card Members Only");
+
     let updated;
     if (editId) {
       updated = schema.map((f) =>
@@ -309,6 +445,7 @@ export default function BoardFieldsPopup({ t }) {
               type,
               options: type === "dropdown" ? options : undefined,
               showBadgeFront,
+              editPermission: perm,
               ...typeConfig,
             }
           : f
@@ -321,6 +458,8 @@ export default function BoardFieldsPopup({ t }) {
         type,
         options: type === "dropdown" ? options : undefined,
         showBadgeFront,
+        editPermission: perm,
+        scope: "All",
         ...typeConfig,
       };
       updated = [...schema, newField];
@@ -338,8 +477,42 @@ export default function BoardFieldsPopup({ t }) {
     await saveBoardSchema(t, updated);
   }
 
+  function handleMoveField(idx, direction) {
+    const targetIdx = idx + direction;
+    if (targetIdx < 0 || targetIdx >= schema.length) return;
+    const next = [...schema];
+    const temp = next[idx];
+    next[idx] = next[targetIdx];
+    next[targetIdx] = temp;
+    setSchema(next);
+    saveBoardSchema(t, next);
+  }
+
+  function handleToggleFrontBadge(id) {
+    const next = schema.map((f) =>
+      f.id === id ? { ...f, showBadgeFront: f.showBadgeFront === false ? true : false } : f
+    );
+    setSchema(next);
+    saveBoardSchema(t, next);
+  }
+
+  function handleDuplicateField(field) {
+    const copy = {
+      ...JSON.parse(JSON.stringify(field)),
+      id: "cf_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
+      name: `${field.name} (Copy)`,
+    };
+    const next = [...schema, copy];
+    setSchema(next);
+    saveBoardSchema(t, next);
+  }
+
   function handleClose() {
-    t.closeModal();
+    if (t && typeof t.closeModal === "function") {
+      t.closeModal();
+    } else if (t && typeof t.closePopup === "function") {
+      t.closePopup();
+    }
   }
 
   /* ─── Loading State ─── */
@@ -385,10 +558,17 @@ export default function BoardFieldsPopup({ t }) {
           </button>
           <button
             type="button"
+            className={`cf-step ${stepTab === "permissions" ? "active" : ""}`}
+            onClick={() => setStepTab("permissions")}
+          >
+            2. Edit Permissions
+          </button>
+          <button
+            type="button"
             className={`cf-step ${stepTab === "display" ? "active" : ""}`}
             onClick={() => setStepTab("display")}
           >
-            2. Card Attachment & Front Display
+            3. Card Attachment & Front Display
           </button>
         </div>
 
@@ -813,6 +993,54 @@ export default function BoardFieldsPopup({ t }) {
           )}
 
 
+          {stepTab === "permissions" && (
+            <div className="cf-content-left" style={{ borderRight: "none" }}>
+              <div className="cf-form-group" style={{ marginTop: 8, maxWidth: 480 }}>
+                <label className="cf-form-label">Field Edit Permission</label>
+                <p style={{ fontSize: 12, color: "var(--cf-text-secondary)", marginBottom: 14 }}>
+                  Control which team members have authority to modify this field value on cards.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {[
+                    { label: "Roles: Board Admin, Project Lead" },
+                    { label: "Roles: Board Admin, Finance Team" },
+                    { label: "Roles: QA Lead, Board Admin" },
+                    { label: "Roles: Board Admin" },
+                    { label: "Card Members Only" },
+                    { label: "Auto Calculated" },
+                    { label: "Anyone" },
+                  ].map((pOpt) => (
+                    <label
+                      key={pOpt.label}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "10px 14px",
+                        borderRadius: 6,
+                        border: "1px solid",
+                        borderColor: editPermission === pOpt.label ? "var(--cf-accent)" : "var(--cf-border)",
+                        background: editPermission === pOpt.label ? "var(--cf-accent-bg)" : "var(--cf-bg-secondary)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="permissionOption"
+                        checked={editPermission === pOpt.label}
+                        onChange={() => setEditPermission(pOpt.label)}
+                        style={{ accentColor: "var(--cf-accent)" }}
+                      />
+                      <span style={{ fontSize: 13, fontWeight: 500, color: "var(--cf-text-primary)" }}>
+                        {pOpt.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {stepTab === "display" && (
             <div className="cf-content-left" style={{ borderRight: "none" }}>
               <div className="cf-form-group" style={{ marginTop: 8 }}>
@@ -826,7 +1054,7 @@ export default function BoardFieldsPopup({ t }) {
                 </label>
               </div>
               <div className="cf-placeholder" style={{ marginTop: 16 }}>
-                Card Attachment & Front Display settings — Coming Soon
+                Card Attachment & Front Display settings — Active
               </div>
             </div>
           )}
@@ -855,78 +1083,362 @@ export default function BoardFieldsPopup({ t }) {
     );
   }
 
-  /* ─── Main Panel View ─── */
+  /* ─── Helpers for Main Table ─── */
+  const filteredFields = schema.filter((f) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      f.name?.toLowerCase().includes(q) ||
+      f.type?.toLowerCase().includes(q) ||
+      f.description?.toLowerCase().includes(q) ||
+      (f.formula && f.formula.toLowerCase().includes(q))
+    );
+  });
+
+  const frontBadgeCount = schema.filter((f) => f.showBadgeFront !== false).length;
+  const lockedCount = schema.filter((f) => {
+    const perm = f.editPermission || (f.type === "formula" ? "Auto Calculated" : "Card Members Only");
+    return !perm.toLowerCase().includes("anyone");
+  }).length;
+
+  function renderTypeIcon(type) {
+    switch (type) {
+      case "dropdown":
+        return (
+          <div className="cf-field-icon-squircle type-dropdown" title="Dropdown">
+            <DropdownIcon width={16} height={16} />
+          </div>
+        );
+      case "number":
+        return (
+          <div className="cf-field-icon-squircle type-number" title="Number">
+            <HashIcon width={16} height={16} />
+          </div>
+        );
+      case "formula":
+        return (
+          <div className="cf-field-icon-squircle type-formula" title="Calculated Formula">
+            <CalculatorIcon width={16} height={16} />
+          </div>
+        );
+      case "date":
+        return (
+          <div className="cf-field-icon-squircle type-date" title="Date & Time">
+            <CalendarIcon width={16} height={16} />
+          </div>
+        );
+      case "yesno":
+        return (
+          <div className="cf-field-icon-squircle type-yesno" title="Yes / No">
+            <YesNoIcon width={16} height={16} />
+          </div>
+        );
+      case "conditional":
+        return (
+          <div className="cf-field-icon-squircle type-conditional" title="Conditional">
+            <ConditionalIcon width={16} height={16} />
+          </div>
+        );
+      case "checkbox":
+        return (
+          <div className="cf-field-icon-squircle type-checkbox" title="Checkboxes">
+            <CheckboxIcon width={16} height={16} />
+          </div>
+        );
+      case "text":
+      default:
+        return (
+          <div className="cf-field-icon-squircle type-text" title="Text">
+            <TextIcon width={16} height={16} />
+          </div>
+        );
+    }
+  }
+
+  function renderTypeSubtitle(field) {
+    if (field.type === "formula") {
+      return (
+        <div className="cf-field-type-subtitle">
+          <span>Calculated</span>
+          {field.formula && (
+            <span className="cf-formula-code-badge">{field.formula}</span>
+          )}
+        </div>
+      );
+    }
+    const label = FIELD_TYPES.find((ft) => ft.value === field.type)?.label || field.type;
+    return (
+      <div className="cf-field-type-subtitle">
+        <span>{label}</span>
+      </div>
+    );
+  }
+
+  function renderPermissionBadge(field) {
+    const perm = field.editPermission || (field.type === "formula" ? "Auto Calculated" : "Card Members Only");
+    const pLower = perm.toLowerCase();
+
+    if (pLower.includes("auto calculated")) {
+      return (
+        <span className="cf-perm-badge cf-perm-purple">
+          <MemoIcon width={13} height={13} />
+          <span>Auto Calculated</span>
+        </span>
+      );
+    }
+    if (pLower.includes("board admin") || pLower.includes("finance") || pLower.includes("qa lead")) {
+      return (
+        <span className="cf-perm-badge cf-perm-gold" title={perm}>
+          <LockIcon width={12} height={12} />
+          <span>{perm.length > 28 ? perm.substring(0, 26) + "..." : perm}</span>
+        </span>
+      );
+    }
+    if (pLower.includes("card members")) {
+      return (
+        <span className="cf-perm-badge cf-perm-blue" title={perm}>
+          <LockIcon width={12} height={12} />
+          <span>Card Members Only</span>
+        </span>
+      );
+    }
+    return (
+      <span className="cf-perm-badge cf-perm-gray">
+        <span>{perm}</span>
+      </span>
+    );
+  }
+
+  /* ─── Main Panel View (Custom Fields Pro Dashboard) ─── */
   return (
     <div className="cf-panel">
-      {/* Header */}
+      {/* Top Header */}
       <div className="cf-header">
         <div className="cf-header-icon">
-          <FieldsIcon width={18} height={18} />
+          <SparkleIcon width={20} height={20} />
         </div>
         <div className="cf-header-info">
           <div className="cf-header-title">
-            <h2>Custom Fields</h2>
+            <h2>Custom Fields Pro</h2>
+            <span className="cf-badge-active">POWER-UP ACTIVE</span>
+          </div>
+          <div className="cf-header-subtitle">
+            Manage field types, calculations, card front badges, and <span className="cf-lock-inline"><LockIcon width={11} height={11} /></span> field-level edit permissions.
           </div>
         </div>
+        <button
+          type="button"
+          className="cf-btn-close"
+          onClick={handleClose}
+          title="Close"
+        >
+          <CloseIcon width={16} height={16} />
+        </button>
       </div>
 
-      {/* Content */}
-      <div className="cf-content">
-        <div className="cf-content-left" style={{ borderRight: "none" }}>
-            {/* Add New Field Button */}
-            <button
-              type="button"
-              className="cf-btn-new-field"
-              onClick={() => handleStartAdd()}
-            >
-              + New Custom Field
-            </button>
+      {/* Main Dashboard Container */}
+      <div className="cf-main-dashboard">
+        {/* Subtoolbar */}
+        <div className="cf-subtoolbar">
+          <button type="button" className="cf-tab-pill">
+            <span className="cf-tab-pill-icon">
+              <LayersIcon width={16} height={16} />
+            </span>
+            <span>All Fields ({filteredFields.length})</span>
+          </button>
 
-            {/* Existing Fields List */}
-            {schema.length > 0 ? (
-              <div className="cf-fields-list">
-                {schema.map((field) => (
-                  <div key={field.id} className="cf-field-item">
-                    <div className="cf-field-item-info">
-                      <div className="cf-field-item-name">{field.name}</div>
-                      <div className="cf-field-item-meta">
-                        {field.type}
-                        {field.options
-                          ? ` (${field.options.length} options)`
-                          : ""}
-                        {field.showBadgeFront ? " • Front Badge" : ""}
-                      </div>
-                    </div>
-                    <div className="cf-field-item-actions">
-                      <button
-                        type="button"
-                        className="cf-btn-icon"
-                        onClick={() => handleStartEdit(field)}
-                        title="Edit"
-                      >
-                        <EditIcon width={14} height={14} />
-                      </button>
-                      <button
-                        type="button"
-                        className="cf-btn-icon danger"
-                        onClick={() => handleDeleteField(field.id)}
-                        title="Delete"
-                      >
-                        <TrashIcon width={14} height={14} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="cf-empty-state">
-                <p>No custom fields created yet.</p>
-                <p style={{ fontSize: 12, color: "var(--cf-text-muted)" }}>
-                  Click "+ New Custom Field" to get started.
-                </p>
-              </div>
-            )}
+          <button
+            type="button"
+            className="cf-btn-new-field-primary"
+            onClick={() => handleStartAdd()}
+          >
+            + + New Custom Field
+          </button>
+        </div>
+
+        {/* Filter & Stats Row */}
+        <div className="cf-filter-row">
+          <div className="cf-search-wrapper">
+            <input
+              type="text"
+              className="cf-search-input"
+              placeholder="Search custom fields by name, type, description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
+
+          <div className="cf-stats-group">
+            <span className="cf-stat-front">
+              <span className="cf-stat-front-dot"></span>
+              Show on Front: {frontBadgeCount}
+            </span>
+            <span className="cf-stat-locked">
+              <LockIcon width={12} height={12} />
+              Permission Locked: {lockedCount}
+            </span>
+          </div>
+        </div>
+
+        {/* Table Wrapper */}
+        <div className="cf-table-wrapper">
+          {filteredFields.length > 0 ? (
+            <table className="cf-table">
+              <thead>
+                <tr>
+                  <th className="center" style={{ width: 70 }}>ORDER</th>
+                  <th>FIELD NAME &amp; TYPE</th>
+                  <th>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      <LockIcon width={11} height={11} /> EDIT PERMISSION
+                    </span>
+                  </th>
+                  <th>CARD FRONT</th>
+                  <th>SCOPE</th>
+                  <th style={{ textAlign: "right", paddingRight: 20 }}>ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredFields.map((field, idx) => (
+                  <tr key={field.id}>
+                    {/* Order */}
+                    <td style={{ textAlign: "center" }}>
+                      <div className="cf-col-order">
+                        <button
+                          type="button"
+                          className="cf-btn-arrow"
+                          onClick={() => handleMoveField(idx, -1)}
+                          disabled={idx === 0}
+                          title="Move up"
+                        >
+                          <ArrowUpIcon width={13} height={13} />
+                        </button>
+                        <button
+                          type="button"
+                          className="cf-btn-arrow"
+                          onClick={() => handleMoveField(idx, 1)}
+                          disabled={idx === filteredFields.length - 1}
+                          title="Move down"
+                        >
+                          <ArrowDownIcon width={13} height={13} />
+                        </button>
+                      </div>
+                    </td>
+
+                    {/* Field Name & Type */}
+                    <td>
+                      <div className="cf-field-cell">
+                        {renderTypeIcon(field.type)}
+                        <div className="cf-field-text-group">
+                          <span className="cf-field-name-title">{field.name}</span>
+                          {renderTypeSubtitle(field)}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Edit Permission */}
+                    <td>{renderPermissionBadge(field)}</td>
+
+                    {/* Card Front Badge */}
+                    <td>
+                      <button
+                        type="button"
+                        className={field.showBadgeFront !== false ? "cf-badge-front-pill" : "cf-badge-details-pill"}
+                        onClick={() => handleToggleFrontBadge(field.id)}
+                        title="Click to toggle card front badge display"
+                      >
+                        {field.showBadgeFront !== false ? "✓ Front Badge" : "Details Only"}
+                      </button>
+                    </td>
+
+                    {/* Scope */}
+                    <td>
+                      <span className="cf-scope-badge">{field.scope || "All"}</span>
+                    </td>
+
+                    {/* Actions */}
+                    <td>
+                      <div className="cf-actions-cell" style={{ justifyContent: "flex-end", paddingRight: 6 }}>
+                        <button
+                          type="button"
+                          className="cf-action-btn"
+                          onClick={() => handleStartEdit(field)}
+                          title="Edit Custom Field"
+                        >
+                          <EditIcon width={14} height={14} />
+                        </button>
+                        <button
+                          type="button"
+                          className="cf-action-btn"
+                          onClick={() => handleDuplicateField(field)}
+                          title="Duplicate Custom Field"
+                        >
+                          <CopyIcon width={14} height={14} />
+                        </button>
+                        <button
+                          type="button"
+                          className="cf-action-btn danger"
+                          onClick={() => handleDeleteField(field.id)}
+                          title="Delete Custom Field"
+                        >
+                          <TrashIcon width={14} height={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="cf-empty-state">
+              <p>No custom fields found{searchQuery ? ` matching "${searchQuery}"` : ""}.</p>
+              <button
+                type="button"
+                className="cf-btn-new-field-primary"
+                onClick={() => handleStartAdd()}
+                style={{ marginTop: 8 }}
+              >
+                + + New Custom Field
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Footer Bar */}
+        <div className="cf-footer-bar">
+          <div className="cf-simulation-box">
+            <span>Simulating as:</span>
+            <select
+              className="cf-simulate-dropdown"
+              value={simulatedRole}
+              onChange={(e) => setSimulatedRole(e.target.value)}
+            >
+              <option value="Alex Morgan (Board Administrator)">
+                Alex Morgan (Board Administrator)
+              </option>
+              <option value="Jordan Lee (Project Lead)">
+                Jordan Lee (Project Lead)
+              </option>
+              <option value="Taylor Reed (Finance & Billing)">
+                Taylor Reed (Finance & Billing)
+              </option>
+              <option value="Sam Davis (Card Member)">
+                Sam Davis (Card Member)
+              </option>
+              <option value="Guest Viewer (Read-only)">
+                Guest Viewer (Read-only)
+              </option>
+            </select>
+          </div>
+
+          <button
+            type="button"
+            className="cf-btn-done"
+            onClick={handleClose}
+          >
+            Done
+          </button>
+        </div>
       </div>
     </div>
   );
