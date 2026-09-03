@@ -254,24 +254,28 @@ TrelloPowerUp.initialize({
     return [
       {
         icon: ICON_DARK,
-        text: "Custom Fields",
+        text: "Custom Fields Pro",
         callback: async function (t) {
-          const auth = await isAuthorized(t);
-          if (!auth) {
-            return t.popup({
-              title: "Authorize Custom Fields",
-              url: "./auth.html",
-              height: 240,
-            });
-          }
           return t.popup({
-            title: "Custom Fields",
+            title: "Custom Fields Pro",
             url: "./cardfields.html",
             height: 380,
           });
         },
       },
     ];
+  },
+
+  "card-back-section": function (t, options) {
+    return {
+      title: "Custom Fields Pro",
+      icon: ICON_DARK,
+      content: {
+        type: "iframe",
+        url: t.signUrl("./cardfields.html"),
+        height: 340,
+      },
+    };
   },
 
   "card-badges": async function (t) {
@@ -332,32 +336,31 @@ TrelloPowerUp.initialize({
   },
 
   "card-detail-badges": async function (t) {
-    const [schema, values] = await Promise.all([
+    const [schema, cardValues] = await Promise.all([
       t.get("board", "shared", "custom_fields_schema", []),
       t.get("card", "shared", "custom_fields_values", {}),
     ]);
 
-    if (!Array.isArray(schema) || !values) return [];
+    if (!Array.isArray(schema) || schema.length === 0) return [];
+    const values = cardValues || {};
 
     const detailBadges = [];
     schema.forEach((field) => {
       if (!checkConditionalRule(field, schema, values)) return;
       const val = field.type === "formula" ? evaluateFormula(field.formula, schema, values) : values[field.id];
       const badge = formatBadge(field, val);
-      if (badge) {
-        detailBadges.push({
-          title: field.name,
-          text: badge.text,
-          color: badge.color,
-          callback: function (t) {
-            return t.popup({
-              title: "Custom Fields",
-              url: "./cardfields.html",
-              height: 380,
-            });
-          },
-        });
-      }
+      detailBadges.push({
+        title: field.name,
+        text: badge ? badge.text : "Set value",
+        color: badge ? badge.color : null,
+        callback: function (t) {
+          return t.popup({
+            title: field.name,
+            url: "./cardfields.html",
+            height: 380,
+          });
+        },
+      });
     });
 
     return detailBadges;

@@ -78,23 +78,36 @@ export default function CardFieldsPopup({ t }) {
     t.sizeTo("#root").catch(() => {});
   }, [t, schema, values, loading]);
 
-  function handleChange(fieldId, val) {
-    setValues((prev) => ({
-      ...prev,
+  async function handleChange(fieldId, val) {
+    const next = {
+      ...values,
       [fieldId]: val,
-    }));
+    };
+    setValues(next);
+    try {
+      await saveCardFieldValues(t, next);
+    } catch (e) {
+      console.warn("Auto-save failed:", e);
+    }
   }
 
   async function handleSave() {
     await saveCardFieldValues(t, values);
-    t.closePopup();
+    if (t && typeof t.closePopup === "function") {
+      try {
+        t.closePopup();
+      } catch {}
+    }
   }
 
   async function handleClear() {
-    if (!confirm("Clear custom field values on this card?")) return;
     setValues({});
     await saveCardFieldValues(t, {});
-    t.closePopup();
+    if (t && typeof t.closePopup === "function") {
+      try {
+        t.closePopup();
+      } catch {}
+    }
   }
 
   function handleOpenBoardSettings() {
