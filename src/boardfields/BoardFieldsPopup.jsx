@@ -1307,7 +1307,7 @@ export default function BoardFieldsPopup({ t }) {
             className="cf-btn-new-field-primary"
             onClick={() => handleStartAdd()}
           >
-            + + New Custom Field
+            + New Custom Field
           </button>
         </div>
 
@@ -1453,7 +1453,7 @@ export default function BoardFieldsPopup({ t }) {
                 onClick={() => handleStartAdd()}
                 style={{ marginTop: 8 }}
               >
-                + + New Custom Field
+                + New Custom Field
               </button>
             </div>
           )}
