@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getBoardSchema, saveBoardSchema, getCurrentMember } from "../lib/trelloApi.js";
 import {
   TrashIcon, EditIcon, SpinnerIcon, CloseIcon,
@@ -217,6 +217,20 @@ export default function BoardFieldsPopup({ t }) {
   const [boardAdminName, setBoardAdminName] = useState("Board Administrator");
   const [simulatedRole, setSimulatedRole] = useState("Board Administrator (Board Administrator)");
   const [memberOptions, setMemberOptions] = useState([]);
+  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
+  const roleDropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (roleDropdownRef.current && !roleDropdownRef.current.contains(e.target)) {
+        setRoleMenuOpen(false);
+      }
+    }
+    if (roleMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [roleMenuOpen]);
 
   // In-app Delete Confirmation state
   const [deleteTargetField, setDeleteTargetField] = useState(null);
@@ -1463,31 +1477,51 @@ export default function BoardFieldsPopup({ t }) {
         <div className="cf-footer-bar">
           <div className="cf-simulation-box">
             <span>Simulating as:</span>
-            <select
-              className="cf-simulate-dropdown"
-              value={simulatedRole}
-              onChange={(e) => setSimulatedRole(e.target.value)}
-            >
-              {memberOptions.length > 0 ? (
-                memberOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))
-              ) : (
-                <>
-                  <option value={`${boardAdminName} (Board Administrator)`}>
-                    {boardAdminName} (Board Administrator)
-                  </option>
-                  <option value={`${boardAdminName} (Project Lead)`}>
-                    {boardAdminName} (Project Lead)
-                  </option>
-                  <option value="Guest Viewer (Read-only)">
-                    Guest Viewer (Read-only)
-                  </option>
-                </>
+            <div className="cf-custom-select-wrapper" ref={roleDropdownRef}>
+              <button
+                type="button"
+                className="cf-custom-select-trigger"
+                onClick={() => setRoleMenuOpen((prev) => !prev)}
+              >
+                <span>{simulatedRole}</span>
+                <span
+                  className="cf-custom-select-chevron"
+                  style={{ transform: roleMenuOpen ? "rotate(180deg)" : "none" }}
+                >
+                  ▾
+                </span>
+              </button>
+
+              {roleMenuOpen && (
+                <div className="cf-custom-select-menu">
+                  {(memberOptions.length > 0
+                    ? memberOptions
+                    : [
+                        `${boardAdminName} (Board Administrator)`,
+                        `${boardAdminName} (Project Lead)`,
+                        `${boardAdminName} (Card Member)`,
+                        "Guest Viewer (Read-only)",
+                      ]
+                  ).map((opt) => {
+                    const isSelected = opt === simulatedRole;
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        className={`cf-custom-select-item ${isSelected ? "selected" : ""}`}
+                        onClick={() => {
+                          setSimulatedRole(opt);
+                          setRoleMenuOpen(false);
+                        }}
+                      >
+                        <span className="cf-custom-select-item-text">{opt}</span>
+                        {isSelected && <span className="cf-custom-select-item-check">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
               )}
-            </select>
+            </div>
           </div>
 
           <button
