@@ -1734,14 +1734,22 @@
 }
 
 .cf-top-tab.matrix-tab.active {
-  border-bottom-color: #FFAB00;
+  border-bottom-color: var(--cf-blue);
+  color: #F7F8F9;
+}
+
+.cf-top-tab.matrix-tab.active svg {
+  color: var(--cf-blue) !important;
+}
+
+.cf-top-tab.matrix-tab svg {
   color: #FFAB00;
 }
 
 .cf-step.perm-step.active {
-  border: 1px solid #FFAB00;
-  color: #FFAB00;
-  background: rgba(255, 171, 0, 0.1);
+  border: 1.5px solid #FFAB00 !important;
+  color: #FFAB00 !important;
+  background: rgba(255, 171, 0, 0.08) !important;
   font-weight: 600;
 }
 
