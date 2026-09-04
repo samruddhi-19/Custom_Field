@@ -218,105 +218,6 @@ export const DEFAULT_ROLES = [
   "Fullstack Engineer",
 ];
 
-export const PRESET_TEMPLATES = [
-  {
-    id: "tpl_scrum",
-    name: "Story Points & Estimation",
-    desc: "Fibonacci effort estimation badge visible on card front.",
-    type: "number",
-    config: {
-      name: "Story Points",
-      type: "number",
-      minValue: 0,
-      decimalPlaces: 0,
-      suffix: "pts",
-      showBadgeFront: true,
-      permissionType: "card_members",
-      editPermission: "Card Members Only",
-    },
-  },
-  {
-    id: "tpl_finops",
-    name: "FinOps Rate & Total Budget",
-    desc: "Formula field calculating feature budget from hours and rates.",
-    type: "formula",
-    config: {
-      name: "Total Feature Budget",
-      type: "formula",
-      formula: "([Billable Hours] * [Hourly Rate])",
-      returnFormat: "currency",
-      unitSymbol: "$",
-      showBadgeFront: true,
-      permissionType: "everyone",
-      editPermission: "Auto Calculated",
-    },
-  },
-  {
-    id: "tpl_qa",
-    name: "QA Release Sign-off",
-    desc: "Formal QA Lead approval switch locked to QA and Board Admin.",
-    type: "yesno",
-    config: {
-      name: "QA Sign-off",
-      type: "yesno",
-      yesLabel: "Approved",
-      noLabel: "Pending",
-      showBadgeFront: true,
-      permissionType: "roles",
-      allowedRoles: ["QA Lead", "Board Admin"],
-      editPermission: "Roles: QA Lead, Board Admin",
-    },
-  },
-  {
-    id: "tpl_security",
-    name: "Security & Compliance Checklist",
-    desc: "SOC2, GDPR, and Penetration audit checklist locked to Admins.",
-    type: "checkbox",
-    config: {
-      name: "Compliance Checklist",
-      type: "checkbox",
-      checklistItems: [
-        { id: "c1", text: "SOC2 Audit Verified" },
-        { id: "c2", text: "GDPR Consent Logged" },
-        { id: "c3", text: "Penetration Test Passed" },
-      ],
-      showBadgeFront: false,
-      permissionType: "admins",
-      editPermission: "Board Administrators Only",
-    },
-  },
-  {
-    id: "tpl_sla",
-    name: "SLA Escalation Flag",
-    desc: "Auto-flags when priority equals Critical or High.",
-    type: "conditional",
-    config: {
-      name: "SLA Escalation Required",
-      type: "conditional",
-      conditionalField: "Priority Level",
-      conditionalOperator: "equals",
-      conditionalValue: "High Priority",
-      showBadgeFront: true,
-      permissionType: "admins",
-      editPermission: "Board Administrators Only",
-    },
-  },
-  {
-    id: "tpl_target_date",
-    name: "Target Deployment Schedule",
-    desc: "Production release date and time badge on card front.",
-    type: "date",
-    config: {
-      name: "Target Deployment Date & Time",
-      type: "date",
-      dateTimeMode: "datetime",
-      showBadgeFront: true,
-      permissionType: "everyone",
-      editPermission: "Everyone on Board",
-    },
-  },
-];
-
 export function computeMemberAccessBadge(member, permType, allowedRoles = [], allowedUsers = []) {
   if (!member) return { label: "🔒 Restricted", className: "cf-access-badge-locked" };
   if (member.isAdmin) {
@@ -396,7 +297,7 @@ export default function BoardFieldsPopup({ t }) {
   const [schema, setSchema] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("main"); // main | create
-  const [mainTab, setMainTab] = useState("fields"); // fields | matrix | templates
+  const [mainTab, setMainTab] = useState("fields"); // fields | matrix
 
   const [stepTab, setStepTab] = useState("config");
   const [editId, setEditId] = useState(null);
@@ -672,20 +573,6 @@ export default function BoardFieldsPopup({ t }) {
     e.target.value = "";
   }
 
-  async function handleApplyTemplate(tpl) {
-    const newField = {
-      id: "cf_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
-      description: tpl.desc,
-      scope: "All",
-      ...tpl.config,
-    };
-    const next = [...schema, newField];
-    setSchema(next);
-    await saveBoardSchema(t, next);
-    showToast(`Installed "${tpl.name}" successfully!`);
-    setMainTab("fields");
-  }
-
   function handleAddOption() {
     const newIndex = options.length + 1;
     const defaultPalette = ["#de350b", "#0052cc", "#36b37e", "#ffab00", "#6554c0", "#ff5630", "#00b8d9"];
@@ -958,18 +845,6 @@ export default function BoardFieldsPopup({ t }) {
           >
             <ShieldIcon width={14} height={14} style={{ color: "#FFAB00" }} />
             <LockIcon width={12} height={12} style={{ color: "#FFAB00", marginLeft: -4 }} />
-            <span>Permission Matrix</span>
-          </button>
-          <button
-            type="button"
-            className="cf-top-tab"
-            onClick={() => {
-              setMainTab("templates");
-              setView("main");
-            }}
-          >
-            <SparkleIcon width={14} height={14} />
-            <span>Field Templates</span>
           </button>
         </div>
 
@@ -1976,14 +1851,6 @@ export default function BoardFieldsPopup({ t }) {
           <LockIcon width={12} height={12} style={{ color: "#FFAB00", marginLeft: -4 }} />
           <span>Permission Matrix</span>
         </button>
-        <button
-          type="button"
-          className={`cf-top-tab ${mainTab === "templates" ? "active" : ""}`}
-          onClick={() => setMainTab("templates")}
-        >
-          <SparkleIcon width={14} height={14} />
-          <span>Field Templates</span>
-        </button>
       </div>
 
       {/* Main Dashboard Container (All Fields Tab) */}
@@ -2305,51 +2172,6 @@ export default function BoardFieldsPopup({ t }) {
                 })}
               </tbody>
             </table>
-          </div>
-        </div>
-      )}
-
-      {/* Field Templates Tab */}
-      {mainTab === "templates" && (
-        <div className="cf-templates-wrapper">
-          <div style={{ marginBottom: 4 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: "#F7F8F9", marginBottom: 2 }}>
-              Recommended Custom Field Templates
-            </h3>
-            <p style={{ fontSize: 12, color: "#8C9BAB" }}>
-              Quickly install pre-configured custom fields with formulas, validation, and permissions ready out-of-the-box.
-            </p>
-          </div>
-
-          <div className="cf-templates-grid">
-            {PRESET_TEMPLATES.map((tpl) => (
-              <div key={tpl.id} className="cf-template-card">
-                <div className="cf-template-header">
-                  <div className="cf-template-icon">
-                    {renderTypeIcon(tpl.type)}
-                  </div>
-                  <div>
-                    <div className="cf-template-title">{tpl.name}</div>
-                    <div className="cf-template-desc">{tpl.desc}</div>
-                  </div>
-                </div>
-
-                <div className="cf-template-meta">
-                  <span className="cf-scope-badge">{tpl.config.editPermission}</span>
-                  {tpl.config.showBadgeFront && (
-                    <span className="cf-badge-front-pill">Front Badge</span>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  className="cf-btn-apply-template"
-                  onClick={() => handleApplyTemplate(tpl)}
-                >
-                  <span>+ Install Template</span>
-                </button>
-              </div>
-            ))}
           </div>
         </div>
       )}
