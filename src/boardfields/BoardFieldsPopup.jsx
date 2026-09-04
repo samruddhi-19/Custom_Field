@@ -876,9 +876,6 @@ export default function BoardFieldsPopup({ t }) {
               <ImportIcon width={14} height={14} />
               <span>Import</span>
             </button>
-            <button type="button" className="cf-btn-close" onClick={handleClose} title="Close">
-              <CloseIcon width={16} height={16} />
-            </button>
           </div>
         </div>
 
@@ -1898,9 +1895,6 @@ export default function BoardFieldsPopup({ t }) {
             <ImportIcon width={14} height={14} />
             <span>Import</span>
           </button>
-          <button type="button" className="cf-btn-close" onClick={handleClose} title="Close">
-            <CloseIcon width={16} height={16} />
-          </button>
         </div>
       </div>
 
@@ -1938,25 +1932,7 @@ export default function BoardFieldsPopup({ t }) {
       {/* Main Dashboard Container (All Fields Tab) */}
       {mainTab === "fields" && (
         <div className="cf-main-dashboard">
-          {/* Subtoolbar */}
-          <div className="cf-subtoolbar">
-            <button type="button" className="cf-tab-pill">
-              <span className="cf-tab-pill-icon">
-                <LayersIcon width={16} height={16} />
-              </span>
-              <span>All Fields ({filteredFields.length})</span>
-            </button>
-
-            <button
-              type="button"
-              className="cf-btn-new-field-primary"
-              onClick={() => handleStartAdd()}
-            >
-              + New Custom Field
-            </button>
-          </div>
-
-          {/* Filter & Stats Row */}
+          {/* Filter & Actions Row */}
           <div className="cf-filter-row">
             <div className="cf-search-wrapper">
               <input
@@ -1978,6 +1954,14 @@ export default function BoardFieldsPopup({ t }) {
                 Permission Locked: {lockedCount}
               </span>
             </div>
+
+            <button
+              type="button"
+              className="cf-btn-new-field-primary"
+              onClick={() => handleStartAdd()}
+            >
+              + New Custom Field
+            </button>
           </div>
 
           {/* Table Wrapper */}
@@ -2028,9 +2012,9 @@ export default function BoardFieldsPopup({ t }) {
 
                       {/* Field Name & Type */}
                       <td>
-                        <div className="cf-col-name-group">
+                        <div className="cf-field-cell">
                           {renderTypeIcon(field.type)}
-                          <div className="cf-field-info-text">
+                          <div className="cf-field-text-group">
                             <div className="cf-field-name-title">
                               <span>{field.name}</span>
                             </div>

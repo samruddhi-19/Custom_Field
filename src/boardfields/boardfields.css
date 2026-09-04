@@ -1157,10 +1157,19 @@
 }
 
 /* Field Info Column */
-.cf-field-cell {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.cf-field-cell,
+.cf-col-name-group {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.cf-field-text-group,
+.cf-field-info-text {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  min-width: 0 !important;
 }
 
 .cf-field-icon-squircle {
