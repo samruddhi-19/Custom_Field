@@ -1655,3 +1655,688 @@
 .cf-content-right::-webkit-scrollbar-thumb:active {
   background: var(--cf-accent);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Field-Level Edit Permissions & Live Access Simulator Styles
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Top Tabs Bar ─── */
+.cf-top-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--cf-border);
+  background: var(--cf-bg-primary);
+  flex-shrink: 0;
+}
+
+.cf-top-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--cf-text-secondary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.cf-top-tab:hover {
+  color: var(--cf-text-primary);
+}
+
+.cf-top-tab.active {
+  color: #F7F8F9;
+  font-weight: 600;
+  border-bottom-color: var(--cf-blue);
+}
+
+.cf-top-tab.matrix-tab.active {
+  border-bottom-color: #FFAB00;
+  color: #FFAB00;
+}
+
+.cf-step.perm-step.active {
+  border: 1px solid #FFAB00;
+  color: #FFAB00;
+  background: rgba(255, 171, 0, 0.1);
+  font-weight: 600;
+}
+
+/* ─── Field-Level Permissions Container ─── */
+.cf-perm-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ─── Amber Warning / Info Banner ─── */
+.cf-perm-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgba(255, 171, 0, 0.07);
+  border: 1px solid rgba(255, 171, 0, 0.32);
+}
+
+.cf-perm-banner-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: rgba(255, 171, 0, 0.18);
+  border: 1px solid rgba(255, 171, 0, 0.35);
+  color: #FFAB00;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cf-perm-banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cf-perm-banner-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFAB00;
+  letter-spacing: 0.2px;
+}
+
+.cf-perm-banner-desc {
+  font-size: 12px;
+  color: #B6C2CF;
+  line-height: 1.45;
+}
+
+/* ─── Split 2-Column Layout ─── */
+.cf-perm-split-layout {
+  display: grid;
+  grid-template-columns: 1.12fr 0.98fr;
+  gap: 22px;
+  align-items: flex-start;
+  min-height: 0;
+}
+
+@media (max-width: 820px) {
+  .cf-perm-split-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cf-perm-col-left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cf-perm-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cf-perm-col-header {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8C9BAB;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 2px;
+}
+
+/* ─── Permission Radio Cards ─── */
+.cf-perm-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.cf-perm-option-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--cf-bg-secondary);
+  border: 1px solid var(--cf-border);
+  cursor: pointer;
+  transition: all 0.16s ease;
+  user-select: none;
+}
+
+.cf-perm-option-card:hover {
+  background: var(--cf-bg-tertiary);
+  border-color: #454F59;
+}
+
+.cf-perm-option-card.selected {
+  border: 1.5px solid #FFAB00;
+  background: rgba(255, 171, 0, 0.06);
+  box-shadow: 0 0 0 1px rgba(255, 171, 0, 0.18);
+}
+
+.cf-perm-option-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  padding-right: 12px;
+}
+
+.cf-perm-option-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #F7F8F9;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cf-perm-option-card.selected .cf-perm-option-title {
+  color: #FFC400;
+}
+
+.cf-perm-option-desc {
+  font-size: 11.5px;
+  color: #8C9BAB;
+  line-height: 1.35;
+}
+
+.cf-perm-check-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid #FFAB00;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFAB00;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cf-perm-radio-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #454F59;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+/* ─── Sub-selector Pills (Roles & Users) ─── */
+.cf-perm-subselect {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cf-perm-subselect-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #8C9BAB;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cf-perm-chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cf-perm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 11.5px;
+  font-weight: 500;
+  background: #282E33;
+  border: 1px solid #38414A;
+  color: #DEE4EA;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cf-perm-chip:hover {
+  background: #333C43;
+  color: #fff;
+  border-color: #579DFF;
+}
+
+.cf-perm-chip.active {
+  background: rgba(124, 92, 252, 0.25);
+  border-color: #7C5CFC;
+  color: #C084FC;
+  font-weight: 600;
+}
+
+/* ─── Live Access Simulator Box ─── */
+.cf-simulator-card {
+  background: #1B1F23;
+  border: 1px solid #2C333A;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.cf-simulator-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #161A1D;
+  border-bottom: 1px solid #282E33;
+}
+
+.cf-simulator-left-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #DEE4EA;
+}
+
+.cf-simulator-right-hint {
+  font-size: 11px;
+  color: #8C9BAB;
+}
+
+.cf-simulator-list {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+}
+
+.cf-simulator-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.12s ease;
+}
+
+.cf-simulator-row:last-child {
+  border-bottom: none;
+}
+
+.cf-simulator-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.cf-simulator-user-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.cf-simulator-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.cf-simulator-user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cf-simulator-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #F7F8F9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cf-simulator-role {
+  font-size: 11px;
+  color: #8C9BAB;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Simulator Status Badges ─── */
+.cf-access-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: 0.1px;
+}
+
+.cf-access-badge-override {
+  background: rgba(75, 206, 151, 0.12);
+  color: #4BCE97;
+  border: 1px solid rgba(75, 206, 151, 0.35);
+}
+
+.cf-access-badge-can-edit {
+  background: rgba(75, 206, 151, 0.12);
+  color: #4BCE97;
+  border: 1px solid rgba(75, 206, 151, 0.35);
+}
+
+.cf-access-badge-card-member {
+  background: rgba(87, 157, 255, 0.12);
+  color: #579DFF;
+  border: 1px solid rgba(87, 157, 255, 0.35);
+}
+
+.cf-access-badge-guest {
+  background: rgba(255, 171, 0, 0.12);
+  color: #FFAB00;
+  border: 1px solid rgba(255, 171, 0, 0.35);
+}
+
+.cf-access-badge-locked {
+  background: rgba(140, 155, 171, 0.1);
+  color: #8C9BAB;
+  border: 1px solid rgba(140, 155, 171, 0.22);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Permission Matrix Table View Styles
+   ═══════════════════════════════════════════════════════════ */
+
+.cf-matrix-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 16px 20px;
+  overflow-y: auto;
+  gap: 14px;
+}
+
+.cf-matrix-summary-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.cf-matrix-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--cf-bg-secondary);
+  border: 1px solid var(--cf-border);
+  border-radius: 8px;
+}
+
+.cf-matrix-stat-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cf-matrix-stat-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: #F7F8F9;
+}
+
+.cf-matrix-stat-lbl {
+  font-size: 11px;
+  color: #8C9BAB;
+}
+
+.cf-matrix-table-container {
+  background: var(--cf-bg-secondary);
+  border: 1px solid var(--cf-border);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.cf-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.cf-matrix-table th {
+  padding: 10px 14px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #8C9BAB;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  background: #161A1D;
+  border-bottom: 1px solid var(--cf-border);
+  white-space: nowrap;
+}
+
+.cf-matrix-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.cf-matrix-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cf-matrix-field-name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 600;
+  color: #F7F8F9;
+}
+
+.cf-matrix-indicator-yes {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(75, 206, 151, 0.14);
+  color: #4BCE97;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.cf-matrix-indicator-no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(248, 113, 104, 0.1);
+  color: #8C9BAB;
+  font-size: 11px;
+}
+
+.cf-matrix-indicator-cond {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(87, 157, 255, 0.14);
+  color: #579DFF;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.cf-matrix-btn-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: #282E33;
+  border: 1px solid #38414A;
+  color: #DEE4EA;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.cf-matrix-btn-edit:hover {
+  background: var(--cf-accent);
+  border-color: var(--cf-accent);
+  color: #fff;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Field Templates View Styles
+   ═══════════════════════════════════════════════════════════ */
+
+.cf-templates-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  gap: 16px;
+}
+
+.cf-templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.cf-template-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px;
+  background: var(--cf-bg-secondary);
+  border: 1px solid var(--cf-border);
+  border-radius: 8px;
+  gap: 12px;
+  transition: all 0.18s ease;
+}
+
+.cf-template-card:hover {
+  border-color: var(--cf-accent);
+  background: var(--cf-bg-tertiary);
+  transform: translateY(-2px);
+}
+
+.cf-template-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.cf-template-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  background: rgba(124, 92, 252, 0.15);
+  color: #9B8AFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cf-template-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #F7F8F9;
+  margin-bottom: 3px;
+}
+
+.cf-template-desc {
+  font-size: 11.5px;
+  color: #8C9BAB;
+  line-height: 1.4;
+}
+
+.cf-template-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.cf-btn-apply-template {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--cf-accent);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.cf-btn-apply-template:hover {
+  background: var(--cf-accent-hover);
+}
+
+/* Toast message */
+.cf-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #22272B;
+  border: 1px solid #4BCE97;
+  color: #4BCE97;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: cfFadeIn 0.2s ease-out;
+}

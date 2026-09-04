@@ -316,9 +316,26 @@ function HostApp() {
       } catch {}
       return Promise.resolve();
     },
-    member: async () => ({ fullName: "Alex Morgan", username: "alexmorgan" }),
+    member: async () => ({ id: "mem_alex", fullName: "Alex Morgan", username: "alexmorgan" }),
     board: async () => ({
-      members: [{ fullName: "Alex Morgan" }, { fullName: "Jordan Lee" }],
+      id: "board_demo_1",
+      name: "Product Engineering Board",
+      members: [
+        { id: "mem_alex", fullName: "Alex Morgan", username: "alexmorgan", initials: "AM", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=64&h=64&fit=crop&crop=face" },
+        { id: "mem_sarah", fullName: "Sarah Connor", username: "sconnor", initials: "SC", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64&h=64&fit=crop&crop=face" },
+        { id: "mem_david", fullName: "David Chen", username: "dchen", initials: "DC", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=face" },
+        { id: "mem_elena", fullName: "Elena Rostova", username: "erostova", initials: "ER", avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=64&h=64&fit=crop&crop=face" },
+        { id: "mem_marcus", fullName: "Marcus Brody", username: "mbrody", initials: "MB", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=64&h=64&fit=crop&crop=face" },
+        { id: "mem_olivia", fullName: "Olivia Taylor", username: "otaylor", initials: "OT", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=64&h=64&fit=crop&crop=face" },
+      ],
+      memberships: [
+        { idMember: "mem_alex", memberType: "admin" },
+        { idMember: "mem_sarah", memberType: "normal" },
+        { idMember: "mem_david", memberType: "normal" },
+        { idMember: "mem_elena", memberType: "normal" },
+        { idMember: "mem_marcus", memberType: "normal" },
+        { idMember: "mem_olivia", memberType: "normal" },
+      ],
     }),
     closeModal: () => {
       setModalOpen(false);
@@ -903,9 +920,9 @@ function HostApp() {
         }}>
           <div style={{
             width: "100%",
-            maxWidth: 1020,
-            height: "88vh",
-            maxHeight: 680,
+            maxWidth: 1040,
+            height: "90vh",
+            maxHeight: 760,
             background: "#1D2125",
             borderRadius: 12,
             border: "1px solid #333C43",

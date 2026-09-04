@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { getBoardSchema, saveBoardSchema, getCurrentMember } from "../lib/trelloApi.js";
+import { getBoardSchema, saveBoardSchema, getCurrentMember, getBoardMembers } from "../lib/trelloApi.js";
 import {
   TrashIcon, EditIcon, SpinnerIcon, CloseIcon,
   LockIcon, FieldsIcon, DropdownIcon, NumberIcon,
@@ -8,6 +8,7 @@ import {
   LayersIcon, ArrowUpIcon, ArrowDownIcon, CopyIcon,
   CalculatorIcon, SearchIcon, HashIcon, MemoIcon,
   ClockIcon, ShieldIcon, TemplateIcon, CheckIcon,
+  EyeIcon, UserIcon, CrownIcon, ExportIcon, ImportIcon,
 } from "../ui/icons.jsx";
 import "./boardfields.css";
 
@@ -80,6 +81,8 @@ export const INITIAL_FIELDS = [
     name: "Priority Level",
     type: "dropdown",
     description: "Urgency and impact of this task",
+    permissionType: "roles",
+    allowedRoles: ["Board Admin", "Project Lead"],
     editPermission: "Roles: Board Admin, Project Lead",
     showBadgeFront: true,
     scope: "All",
@@ -94,6 +97,7 @@ export const INITIAL_FIELDS = [
     name: "Story Points",
     type: "number",
     description: "Effort estimation in Fibonacci points",
+    permissionType: "card_members",
     editPermission: "Card Members Only",
     showBadgeFront: true,
     scope: "All",
@@ -106,6 +110,7 @@ export const INITIAL_FIELDS = [
     name: "Billable Hours",
     type: "number",
     description: "Logged billable hours for client billing",
+    permissionType: "card_members",
     editPermission: "Card Members Only",
     showBadgeFront: false,
     scope: "All",
@@ -118,6 +123,8 @@ export const INITIAL_FIELDS = [
     name: "Hourly Rate",
     type: "number",
     description: "Contracted hourly billing rate",
+    permissionType: "roles",
+    allowedRoles: ["Board Admin", "Finance Team"],
     editPermission: "Roles: Board Admin, Finance Team",
     showBadgeFront: false,
     scope: "All",
@@ -130,6 +137,7 @@ export const INITIAL_FIELDS = [
     name: "Total Feature Budget",
     type: "formula",
     description: "Calculated feature cost based on hours and rate",
+    permissionType: "everyone",
     editPermission: "Auto Calculated",
     showBadgeFront: true,
     scope: "All",
@@ -142,6 +150,7 @@ export const INITIAL_FIELDS = [
     name: "Target Deployment Date & Time",
     type: "date",
     description: "Scheduled release target",
+    permissionType: "card_members",
     editPermission: "Card Members Only",
     showBadgeFront: true,
     scope: "All",
@@ -152,6 +161,8 @@ export const INITIAL_FIELDS = [
     name: "QA Sign-off",
     type: "yesno",
     description: "Quality assurance approval before deployment",
+    permissionType: "roles",
+    allowedRoles: ["QA Lead", "Board Admin"],
     editPermission: "Roles: QA Lead, Board Admin",
     showBadgeFront: true,
     scope: "All",
@@ -163,7 +174,8 @@ export const INITIAL_FIELDS = [
     name: "SLA Escalation Required",
     type: "conditional",
     description: "Triggers escalation if SLA is breached",
-    editPermission: "Roles: Board Admin",
+    permissionType: "admins",
+    editPermission: "Board Administrators Only",
     showBadgeFront: true,
     scope: "All",
     conditionalField: "Priority Level",
@@ -175,7 +187,8 @@ export const INITIAL_FIELDS = [
     name: "Security & Compliance",
     type: "checkbox",
     description: "Mandatory security checklist items",
-    editPermission: "Anyone",
+    permissionType: "everyone",
+    editPermission: "Everyone on Board",
     showBadgeFront: false,
     scope: "All",
     checklistItems: [
@@ -188,13 +201,187 @@ export const INITIAL_FIELDS = [
     name: "Customer Release Note",
     type: "text",
     description: "Customer-facing description of the feature or fix",
-    editPermission: "Anyone",
+    permissionType: "everyone",
+    editPermission: "Everyone on Board",
     showBadgeFront: false,
     scope: "All",
     multiline: true,
     placeholder: "Release notes for changelog...",
   },
 ];
+
+export const DEFAULT_ROLES = [
+  "Board Admin",
+  "Tech Lead / PM",
+  "Finance Team",
+  "QA Lead",
+  "Fullstack Engineer",
+];
+
+export const PRESET_TEMPLATES = [
+  {
+    id: "tpl_scrum",
+    name: "Story Points & Estimation",
+    desc: "Fibonacci effort estimation badge visible on card front.",
+    type: "number",
+    config: {
+      name: "Story Points",
+      type: "number",
+      minValue: 0,
+      decimalPlaces: 0,
+      suffix: "pts",
+      showBadgeFront: true,
+      permissionType: "card_members",
+      editPermission: "Card Members Only",
+    },
+  },
+  {
+    id: "tpl_finops",
+    name: "FinOps Rate & Total Budget",
+    desc: "Formula field calculating feature budget from hours and rates.",
+    type: "formula",
+    config: {
+      name: "Total Feature Budget",
+      type: "formula",
+      formula: "([Billable Hours] * [Hourly Rate])",
+      returnFormat: "currency",
+      unitSymbol: "$",
+      showBadgeFront: true,
+      permissionType: "everyone",
+      editPermission: "Auto Calculated",
+    },
+  },
+  {
+    id: "tpl_qa",
+    name: "QA Release Sign-off",
+    desc: "Formal QA Lead approval switch locked to QA and Board Admin.",
+    type: "yesno",
+    config: {
+      name: "QA Sign-off",
+      type: "yesno",
+      yesLabel: "Approved",
+      noLabel: "Pending",
+      showBadgeFront: true,
+      permissionType: "roles",
+      allowedRoles: ["QA Lead", "Board Admin"],
+      editPermission: "Roles: QA Lead, Board Admin",
+    },
+  },
+  {
+    id: "tpl_security",
+    name: "Security & Compliance Checklist",
+    desc: "SOC2, GDPR, and Penetration audit checklist locked to Admins.",
+    type: "checkbox",
+    config: {
+      name: "Compliance Checklist",
+      type: "checkbox",
+      checklistItems: [
+        { id: "c1", text: "SOC2 Audit Verified" },
+        { id: "c2", text: "GDPR Consent Logged" },
+        { id: "c3", text: "Penetration Test Passed" },
+      ],
+      showBadgeFront: false,
+      permissionType: "admins",
+      editPermission: "Board Administrators Only",
+    },
+  },
+  {
+    id: "tpl_sla",
+    name: "SLA Escalation Flag",
+    desc: "Auto-flags when priority equals Critical or High.",
+    type: "conditional",
+    config: {
+      name: "SLA Escalation Required",
+      type: "conditional",
+      conditionalField: "Priority Level",
+      conditionalOperator: "equals",
+      conditionalValue: "High Priority",
+      showBadgeFront: true,
+      permissionType: "admins",
+      editPermission: "Board Administrators Only",
+    },
+  },
+  {
+    id: "tpl_target_date",
+    name: "Target Deployment Schedule",
+    desc: "Production release date and time badge on card front.",
+    type: "date",
+    config: {
+      name: "Target Deployment Date & Time",
+      type: "date",
+      dateTimeMode: "datetime",
+      showBadgeFront: true,
+      permissionType: "everyone",
+      editPermission: "Everyone on Board",
+    },
+  },
+];
+
+export function computeMemberAccessBadge(member, permType, allowedRoles = [], allowedUsers = []) {
+  if (!member) return { label: "🔒 Restricted", className: "cf-access-badge-locked" };
+  if (member.isAdmin) {
+    return { label: "✓ Admin Override", className: "cf-access-badge-override" };
+  }
+  if (member.isGuest) {
+    return { label: "🔒 Guest Read-Only", className: "cf-access-badge-guest" };
+  }
+  if (permType === "everyone") {
+    return { label: "✓ Can Edit", className: "cf-access-badge-can-edit" };
+  }
+  if (permType === "admins") {
+    return { label: "🔒 Admin Locked", className: "cf-access-badge-locked" };
+  }
+  if (permType === "card_members") {
+    return { label: "✓ Can Edit (If Assigned)", className: "cf-access-badge-card-member" };
+  }
+  if (permType === "roles") {
+    const memRoles = member.roles || (member.role ? [member.role] : []);
+    const match = memRoles.some((r) =>
+      allowedRoles.some(
+        (ar) =>
+          ar &&
+          r &&
+          (ar.toLowerCase() === r.toLowerCase() ||
+            (ar === "Finance Team" && r.toLowerCase().includes("financ")) ||
+            (ar === "Tech Lead / PM" && (r.toLowerCase().includes("pm") || r.toLowerCase().includes("lead"))))
+      )
+    );
+    return match
+      ? { label: "✓ Can Edit", className: "cf-access-badge-can-edit" }
+      : { label: "🔒 Role Restricted", className: "cf-access-badge-locked" };
+  }
+  if (permType === "users") {
+    const match =
+      allowedUsers.includes(member.name) ||
+      allowedUsers.includes(member.username) ||
+      allowedUsers.includes(member.id);
+    return match
+      ? { label: "✓ Can Edit", className: "cf-access-badge-can-edit" }
+      : { label: "🔒 Restricted", className: "cf-access-badge-locked" };
+  }
+  if (permType === "formula") {
+    return { label: "🔒 Auto-calculated", className: "cf-access-badge-locked" };
+  }
+  return { label: "✓ Can Edit", className: "cf-access-badge-can-edit" };
+}
+
+export function parsePermissionType(permString) {
+  if (!permString) return "everyone";
+  const p = permString.toLowerCase();
+  if (p.includes("admin") && !p.includes("lead") && !p.includes("finance") && !p.includes("qa")) return "admins";
+  if (p.includes("card member")) return "card_members";
+  if (p.includes("role")) return "roles";
+  if (p.includes("user")) return "users";
+  if (p.includes("anyone") || p.includes("everyone")) return "everyone";
+  return "everyone";
+}
+
+export function parseRolesFromPermString(permString) {
+  if (!permString || !permString.toLowerCase().includes("roles:")) return ["Board Admin", "Tech Lead / PM"];
+  const parts = permString.split(":")[1]?.split(",") || [];
+  const trimmed = parts.map((s) => s.trim()).filter(Boolean);
+  return trimmed.length > 0 ? trimmed : ["Board Admin", "Tech Lead / PM"];
+}
 
 const STEP_TABS = ["config", "permissions", "display"];
 
@@ -209,17 +396,46 @@ export default function BoardFieldsPopup({ t }) {
   const [schema, setSchema] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("main"); // main | create
+  const [mainTab, setMainTab] = useState("fields"); // fields | matrix | templates
 
   const [stepTab, setStepTab] = useState("config");
   const [editId, setEditId] = useState(null);
 
   // Search & Simulation states
   const [searchQuery, setSearchQuery] = useState("");
+  const [boardMembers, setBoardMembers] = useState([]);
   const [boardAdminName, setBoardAdminName] = useState("Board Administrator");
-  const [simulatedRole, setSimulatedRole] = useState("Board Administrator (Board Administrator)");
+  const [simulatedRole, setSimulatedRole] = useState(() => {
+    try {
+      const stored = localStorage.getItem("cf_simulated_role");
+      if (stored) return stored;
+    } catch {}
+    return "Alex Morgan (Board Administrator)";
+  });
   const [memberOptions, setMemberOptions] = useState([]);
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const roleDropdownRef = useRef(null);
+
+  const availableUsers = boardMembers.map((m) => m.name);
+  const availableRoles = Array.from(
+    new Set([
+      "Board Admin",
+      ...boardMembers.map((m) => m.role).filter(Boolean),
+      ...boardMembers.flatMap((m) => m.roles || []).filter(Boolean),
+      ...DEFAULT_ROLES,
+    ])
+  );
+
+  // Toast notification state
+  const [toastMessage, setToastMessage] = useState("");
+  const importFileRef = useRef(null);
+
+  function showToast(msg) {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage("");
+    }, 3200);
+  }
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -244,7 +460,10 @@ export default function BoardFieldsPopup({ t }) {
   const [description, setDescription] = useState("");
   const [type, setType] = useState("dropdown");
   const [showBadgeFront, setShowBadgeFront] = useState(true);
-  const [editPermission, setEditPermission] = useState("Card Members Only");
+  const [editPermission, setEditPermission] = useState("Everyone on Board");
+  const [permissionType, setPermissionType] = useState("everyone"); // everyone | admins | card_members | roles | users
+  const [allowedRoles, setAllowedRoles] = useState(["Tech Lead / PM", "Board Admin"]);
+  const [allowedUsers, setAllowedUsers] = useState(["Alex Morgan", "Sarah Connor"]);
   const [options, setOptions] = useState([]);
   const [prefix, setPrefix] = useState("");
   const [suffix, setSuffix] = useState("");
@@ -281,8 +500,11 @@ export default function BoardFieldsPopup({ t }) {
         setLoading(false);
       }
 
-      // Fetch actual Trello board admin and current member name
+      // Fetch actual board members from Trello board
       try {
+        const bMembers = await getBoardMembers(t);
+        setBoardMembers(bMembers);
+
         let currentName = "";
         if (t && typeof t.member === "function") {
           const mem = await t.member("id", "fullName", "username");
@@ -296,28 +518,15 @@ export default function BoardFieldsPopup({ t }) {
           else if (apiMem?.username) currentName = apiMem.username;
         }
 
-        let boardMembers = [];
-        if (t && typeof t.board === "function") {
-          try {
-            const bData = await t.board("members");
-            if (Array.isArray(bData?.members)) {
-              boardMembers = bData.members.map((m) => m.fullName || m.username).filter(Boolean);
-            }
-          } catch {}
-        }
+        const adminMem = bMembers.find((m) => m.isAdmin) || bMembers[0];
+        const primaryName = currentName || adminMem?.name || "Board Administrator";
 
-        const primaryName = currentName || boardMembers[0] || "Board Administrator";
         setBoardAdminName(primaryName);
-        setSimulatedRole(`${primaryName} (Board Administrator)`);
-
-        const opts = [
-          `${primaryName} (Board Administrator)`,
-          ...boardMembers.filter((m) => m !== primaryName).map((m) => `${m} (Board Member)`),
-          `${primaryName} (Project Lead)`,
-          `${primaryName} (Card Member)`,
-          "Guest Viewer (Read-only)",
-        ];
-        setMemberOptions(Array.from(new Set(opts)));
+        if (bMembers.length > 0) {
+          const defaultSim = `${(adminMem || bMembers[0]).name} (${(adminMem || bMembers[0]).role})`;
+          setSimulatedRole((prev) => (prev && bMembers.some((m) => prev.startsWith(m.name)) ? prev : defaultSim));
+          setMemberOptions(bMembers.map((m) => `${m.name} (${m.role})`));
+        }
       } catch (e) {
         console.warn("Could not fetch Trello member details:", e);
       }
@@ -357,7 +566,10 @@ export default function BoardFieldsPopup({ t }) {
     setDescription("");
     setType(selectedType);
     setShowBadgeFront(true);
-    setEditPermission(selectedType === "formula" ? "Auto Calculated" : "Card Members Only");
+    setPermissionType("everyone");
+    setAllowedRoles(["Tech Lead / PM", "Board Admin"]);
+    setAllowedUsers(["Alex Morgan", "Sarah Connor"]);
+    setEditPermission(selectedType === "formula" ? "Auto Calculated" : "Everyone on Board");
     setOptions(selectedType === "dropdown" ? [...DEFAULT_DROPDOWN_OPTIONS] : []);
     setPrefix("");
     setSuffix("");
@@ -386,7 +598,11 @@ export default function BoardFieldsPopup({ t }) {
     setDescription(field.description || "");
     setType(field.type);
     setShowBadgeFront(field.showBadgeFront !== false);
-    setEditPermission(field.editPermission || (field.type === "formula" ? "Auto Calculated" : "Card Members Only"));
+    const resolvedType = field.permissionType || parsePermissionType(field.editPermission);
+    setPermissionType(resolvedType);
+    setAllowedRoles(field.allowedRoles || parseRolesFromPermString(field.editPermission));
+    setAllowedUsers(field.allowedUsers || ["Alex Morgan", "Sarah Connor"]);
+    setEditPermission(field.editPermission || (field.type === "formula" ? "Auto Calculated" : "Everyone on Board"));
     setOptions(field.options ? JSON.parse(JSON.stringify(field.options)) : []);
     setPrefix(field.prefix || "");
     setSuffix(field.suffix || "");
@@ -411,6 +627,63 @@ export default function BoardFieldsPopup({ t }) {
     setFormError("");
     setStepTab("config");
     setView("create");
+  }
+
+  function handleExportSchema() {
+    try {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(schema, null, 2));
+      const dlAnchor = document.createElement("a");
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", "custom-fields-schema.json");
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      dlAnchor.remove();
+      showToast("Custom fields schema exported successfully!");
+    } catch (e) {
+      alert("Export failed: " + e.message);
+    }
+  }
+
+  function handleImportClick() {
+    if (importFileRef.current) {
+      importFileRef.current.click();
+    }
+  }
+
+  function handleFileChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const parsed = JSON.parse(event.target.result);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setSchema(parsed);
+          await saveBoardSchema(t, parsed);
+          showToast(`Successfully imported ${parsed.length} custom fields!`);
+        } else {
+          alert("Invalid schema file. Expected an array of fields.");
+        }
+      } catch (err) {
+        alert("Failed to parse JSON file: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }
+
+  async function handleApplyTemplate(tpl) {
+    const newField = {
+      id: "cf_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
+      description: tpl.desc,
+      scope: "All",
+      ...tpl.config,
+    };
+    const next = [...schema, newField];
+    setSchema(next);
+    await saveBoardSchema(t, next);
+    showToast(`Installed "${tpl.name}" successfully!`);
+    setMainTab("fields");
   }
 
   function handleAddOption() {
@@ -440,18 +713,14 @@ export default function BoardFieldsPopup({ t }) {
   }
 
   function handleAddChecklistItem() {
-    const newIndex = checklistItems.length + 1;
-    setChecklistItems([
-      ...checklistItems,
-      {
-        id: "chk_" + Date.now() + "_" + Math.random().toString(36).substring(2, 5),
-        text: `New Item ${newIndex}`,
-      },
-    ]);
+    const newId = "chk_" + Date.now() + "_" + Math.random().toString(36).substring(2, 5);
+    setChecklistItems([...checklistItems, { id: newId, text: "" }]);
   }
 
-  function handleChecklistItemTextChange(idx, newText) {
-    setChecklistItems(checklistItems.map((item, i) => (i === idx ? { ...item, text: newText } : item)));
+  function handleChecklistTextChange(idx, text) {
+    setChecklistItems(
+      checklistItems.map((item, i) => (i === idx ? { ...item, text } : item))
+    );
   }
 
   function handleRemoveChecklistItem(idx) {
@@ -465,13 +734,17 @@ export default function BoardFieldsPopup({ t }) {
 
   async function handleSaveField() {
     if (!name.trim()) {
-      setFormError("Please enter a field name.");
+      setFormError("Field Name is required.");
+      setStepTab("config");
       return;
     }
+
     if (type === "dropdown" && options.length === 0) {
-      setFormError("Please add at least one dropdown option.");
+      setFormError("Please provide at least one dropdown option.");
+      setStepTab("config");
       return;
     }
+
     setFormError("");
 
     const typeConfig = type === "number" ? {
@@ -499,7 +772,20 @@ export default function BoardFieldsPopup({ t }) {
       placeholder: placeholder.trim() || undefined,
     } : {};
 
-    const perm = type === "formula" ? "Auto Calculated" : (editPermission || "Card Members Only");
+    let perm = "Everyone on Board";
+    if (type === "formula") {
+      perm = "Auto Calculated";
+    } else if (permissionType === "everyone") {
+      perm = "Everyone on Board";
+    } else if (permissionType === "admins") {
+      perm = "Board Administrators Only";
+    } else if (permissionType === "card_members") {
+      perm = "Card Members Only";
+    } else if (permissionType === "roles") {
+      perm = `Roles: ${allowedRoles.length > 0 ? allowedRoles.join(", ") : "Board Admin"}`;
+    } else if (permissionType === "users") {
+      perm = `Users: ${allowedUsers.length > 0 ? allowedUsers.join(", ") : "Board Admin"}`;
+    }
 
     let updated;
     if (editId) {
@@ -512,6 +798,9 @@ export default function BoardFieldsPopup({ t }) {
               type,
               options: type === "dropdown" ? options : undefined,
               showBadgeFront,
+              permissionType,
+              allowedRoles,
+              allowedUsers,
               editPermission: perm,
               ...typeConfig,
             }
@@ -525,6 +814,9 @@ export default function BoardFieldsPopup({ t }) {
         type,
         options: type === "dropdown" ? options : undefined,
         showBadgeFront,
+        permissionType,
+        allowedRoles,
+        allowedUsers,
         editPermission: perm,
         scope: "All",
         ...typeConfig,
@@ -535,6 +827,7 @@ export default function BoardFieldsPopup({ t }) {
     setSchema(updated);
     setView("main");
     await saveBoardSchema(t, updated);
+    showToast(`Saved field "${name.trim()}"!`);
   }
 
   function handleRequestDelete(field) {
@@ -607,7 +900,80 @@ export default function BoardFieldsPopup({ t }) {
   if (view === "create") {
     return (
       <div className="cf-panel">
-        {/* Breadcrumb Header */}
+        {/* Hidden Import File Input */}
+        <input
+          type="file"
+          ref={importFileRef}
+          accept=".json"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
+
+        {/* Top Header */}
+        <div className="cf-header">
+          <div className="cf-header-icon">
+            <SparkleIcon width={20} height={20} />
+          </div>
+          <div className="cf-header-info">
+            <div className="cf-header-title">
+              <h2>Custom Fields Pro</h2>
+              <span className="cf-badge-active">POWER-UP ACTIVE</span>
+            </div>
+            <div className="cf-header-subtitle">
+              Manage field types, calculations, card front badges, and <span className="cf-lock-inline"><LockIcon width={11} height={11} /></span> field-level edit permissions.
+            </div>
+          </div>
+          <div className="cf-header-actions">
+            <button type="button" className="cf-btn-header" onClick={handleExportSchema}>
+              <ExportIcon width={14} height={14} />
+              <span>Export</span>
+            </button>
+            <button type="button" className="cf-btn-header" onClick={handleImportClick}>
+              <ImportIcon width={14} height={14} />
+              <span>Import</span>
+            </button>
+            <button type="button" className="cf-btn-close" onClick={handleClose} title="Close">
+              <CloseIcon width={16} height={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* Top Tabs */}
+        <div className="cf-top-tabs">
+          <button
+            type="button"
+            className="cf-top-tab"
+            onClick={() => {
+              setMainTab("fields");
+              setView("main");
+            }}
+          >
+            <LayersIcon width={15} height={15} />
+            <span>All Fields ({schema.length})</span>
+          </button>
+          <button
+            type="button"
+            className={`cf-top-tab matrix-tab ${stepTab === "permissions" ? "active" : ""}`}
+            onClick={() => setStepTab("permissions")}
+          >
+            <ShieldIcon width={14} height={14} style={{ color: "#FFAB00" }} />
+            <LockIcon width={12} height={12} style={{ color: "#FFAB00", marginLeft: -4 }} />
+            <span>Permission Matrix</span>
+          </button>
+          <button
+            type="button"
+            className="cf-top-tab"
+            onClick={() => {
+              setMainTab("templates");
+              setView("main");
+            }}
+          >
+            <SparkleIcon width={14} height={14} />
+            <span>Field Templates</span>
+          </button>
+        </div>
+
+        {/* Breadcrumb Header matching Screenshot */}
         <div className="cf-create-header">
           <div className="cf-breadcrumb">
             <button
@@ -622,6 +988,23 @@ export default function BoardFieldsPopup({ t }) {
               {editId ? "Edit Custom Field" : "Create New Custom Field"}
             </span>
           </div>
+
+          <div className="cf-create-actions">
+            <button
+              type="button"
+              className="cf-btn-cancel"
+              onClick={() => setView("main")}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="cf-btn-save"
+              onClick={handleSaveField}
+            >
+              Save Custom Field
+            </button>
+          </div>
         </div>
 
         {/* Step Tabs */}
@@ -631,21 +1014,22 @@ export default function BoardFieldsPopup({ t }) {
             className={`cf-step ${stepTab === "config" ? "active" : ""}`}
             onClick={() => setStepTab("config")}
           >
-            1. Field Configuration & Type
+            1. Field Configuration &amp; Type
           </button>
           <button
             type="button"
-            className={`cf-step ${stepTab === "permissions" ? "active" : ""}`}
+            className={`cf-step perm-step ${stepTab === "permissions" ? "active" : ""}`}
             onClick={() => setStepTab("permissions")}
           >
-            2. Edit Permissions
+            <LockIcon width={12} height={12} style={{ color: "#FFAB00" }} />
+            <span>2. 🔒 Field-Level Permissions</span>
           </button>
           <button
             type="button"
             className={`cf-step ${stepTab === "display" ? "active" : ""}`}
             onClick={() => setStepTab("display")}
           >
-            3. Card Attachment & Front Display
+            3. Card Attachment &amp; Front Display
           </button>
         </div>
 
@@ -1072,48 +1456,249 @@ export default function BoardFieldsPopup({ t }) {
 
 
           {stepTab === "permissions" && (
-            <div className="cf-content-left" style={{ borderRight: "none" }}>
-              <div className="cf-form-group" style={{ marginTop: 8, maxWidth: 480 }}>
-                <label className="cf-form-label">Field Edit Permission</label>
-                <p style={{ fontSize: 12, color: "var(--cf-text-secondary)", marginBottom: 14 }}>
-                  Control which team members have authority to modify this field value on cards.
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {[
-                    { label: "Roles: Board Admin, Project Lead" },
-                    { label: "Roles: Board Admin, Finance Team" },
-                    { label: "Roles: QA Lead, Board Admin" },
-                    { label: "Roles: Board Admin" },
-                    { label: "Card Members Only" },
-                    { label: "Auto Calculated" },
-                    { label: "Anyone" },
-                  ].map((pOpt) => (
-                    <label
-                      key={pOpt.label}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        padding: "10px 14px",
-                        borderRadius: 6,
-                        border: "1px solid",
-                        borderColor: editPermission === pOpt.label ? "var(--cf-accent)" : "var(--cf-border)",
-                        background: editPermission === pOpt.label ? "var(--cf-accent-bg)" : "var(--cf-bg-secondary)",
-                        cursor: "pointer",
-                      }}
+            <div className="cf-perm-container">
+              {/* Amber Banner */}
+              <div className="cf-perm-banner">
+                <div className="cf-perm-banner-icon">
+                  <LockIcon width={16} height={16} />
+                </div>
+                <div className="cf-perm-banner-content">
+                  <div className="cf-perm-banner-title">Field-Level Edit Permissions</div>
+                  <div className="cf-perm-banner-desc">
+                    Control who can edit this individual field, independently of who has permission to move or edit the card.
+                  </div>
+                </div>
+              </div>
+
+              {/* Split 2-Column Layout */}
+              <div className="cf-perm-split-layout">
+                {/* Left Column: Who Can Edit */}
+                <div className="cf-perm-col-left">
+                  <div className="cf-perm-col-header">WHO CAN EDIT THIS FIELD?</div>
+                  <div className="cf-perm-options-list">
+                    {/* 1. Everyone on Board */}
+                    <div
+                      className={`cf-perm-option-card ${permissionType === "everyone" ? "selected" : ""}`}
+                      onClick={() => setPermissionType("everyone")}
                     >
-                      <input
-                        type="radio"
-                        name="permissionOption"
-                        checked={editPermission === pOpt.label}
-                        onChange={() => setEditPermission(pOpt.label)}
-                        style={{ accentColor: "var(--cf-accent)" }}
-                      />
-                      <span style={{ fontSize: 13, fontWeight: 500, color: "var(--cf-text-primary)" }}>
-                        {pOpt.label}
-                      </span>
-                    </label>
-                  ))}
+                      <div className="cf-perm-option-info">
+                        <div className="cf-perm-option-title">Everyone on Board</div>
+                        <div className="cf-perm-option-desc">
+                          Any active team member on the board can modify this value.
+                        </div>
+                      </div>
+                      {permissionType === "everyone" ? (
+                        <div className="cf-perm-check-circle">✓</div>
+                      ) : (
+                        <div className="cf-perm-radio-circle" />
+                      )}
+                    </div>
+
+                    {/* 2. Board Administrators Only */}
+                    <div
+                      className={`cf-perm-option-card ${permissionType === "admins" ? "selected" : ""}`}
+                      onClick={() => setPermissionType("admins")}
+                    >
+                      <div className="cf-perm-option-info">
+                        <div className="cf-perm-option-title">
+                          <span>Board Administrators Only</span>
+                          <span>👑</span>
+                        </div>
+                        <div className="cf-perm-option-desc">
+                          Strictly locked to Board Admins (e.g. Alex Morgan).
+                        </div>
+                      </div>
+                      {permissionType === "admins" ? (
+                        <div className="cf-perm-check-circle">✓</div>
+                      ) : (
+                        <div className="cf-perm-radio-circle" />
+                      )}
+                    </div>
+
+                    {/* 3. Assigned Card Members Only */}
+                    <div
+                      className={`cf-perm-option-card ${permissionType === "card_members" ? "selected" : ""}`}
+                      onClick={() => setPermissionType("card_members")}
+                    >
+                      <div className="cf-perm-option-info">
+                        <div className="cf-perm-option-title">
+                          <span>Assigned Card Members Only</span>
+                          <span>👤</span>
+                        </div>
+                        <div className="cf-perm-option-desc">
+                          Only members assigned to the specific card can edit this field.
+                        </div>
+                      </div>
+                      {permissionType === "card_members" ? (
+                        <div className="cf-perm-check-circle">✓</div>
+                      ) : (
+                        <div className="cf-perm-radio-circle" />
+                      )}
+                    </div>
+
+                    {/* 4. Specific Team Roles */}
+                    <div
+                      className={`cf-perm-option-card ${permissionType === "roles" ? "selected" : ""}`}
+                      onClick={() => setPermissionType("roles")}
+                    >
+                      <div className="cf-perm-option-info">
+                        <div className="cf-perm-option-title">
+                          <span>Specific Team Roles</span>
+                          <span>🛡️</span>
+                        </div>
+                        <div className="cf-perm-option-desc">
+                          Limit editing to particular roles (e.g. Finance, Tech Lead, QA).
+                        </div>
+                      </div>
+                      {permissionType === "roles" ? (
+                        <div className="cf-perm-check-circle">✓</div>
+                      ) : (
+                        <div className="cf-perm-radio-circle" />
+                      )}
+                    </div>
+                    {permissionType === "roles" && (
+                      <div className="cf-perm-subselect">
+                        <div className="cf-perm-subselect-label">Select Allowed Roles:</div>
+                        <div className="cf-perm-chips-grid">
+                          {availableRoles.map((role) => {
+                            const isSelected = allowedRoles.includes(role);
+                            return (
+                              <button
+                                key={role}
+                                type="button"
+                                className={`cf-perm-chip ${isSelected ? "active" : ""}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setAllowedRoles((prev) =>
+                                    isSelected ? prev.filter((r) => r !== role) : [...prev, role]
+                                  );
+                                }}
+                              >
+                                <span>{isSelected ? "✓" : "+"}</span>
+                                <span>{role}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 5. Specific Individual Users */}
+                    <div
+                      className={`cf-perm-option-card ${permissionType === "users" ? "selected" : ""}`}
+                      onClick={() => setPermissionType("users")}
+                    >
+                      <div className="cf-perm-option-info">
+                        <div className="cf-perm-option-title">
+                          <span>Specific Individual Users</span>
+                          <span>👥</span>
+                        </div>
+                        <div className="cf-perm-option-desc">
+                          Select specific individuals with editing privileges.
+                        </div>
+                      </div>
+                      {permissionType === "users" ? (
+                        <div className="cf-perm-check-circle">✓</div>
+                      ) : (
+                        <div className="cf-perm-radio-circle" />
+                      )}
+                    </div>
+                    {permissionType === "users" && (
+                      <div className="cf-perm-subselect">
+                        <div className="cf-perm-subselect-label">Select Authorized Users:</div>
+                        <div className="cf-perm-chips-grid">
+                          {availableUsers.map((user) => {
+                            const isSelected = allowedUsers.includes(user);
+                            return (
+                              <button
+                                key={user}
+                                type="button"
+                                className={`cf-perm-chip ${isSelected ? "active" : ""}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setAllowedUsers((prev) =>
+                                    isSelected ? prev.filter((u) => u !== user) : [...prev, user]
+                                  );
+                                }}
+                              >
+                                <span>{isSelected ? "✓" : "+"}</span>
+                                <span>{user}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Column: Live Access Simulator */}
+                <div className="cf-perm-col-right">
+                  <div className="cf-simulator-card">
+                    <div className="cf-simulator-topbar">
+                      <div className="cf-simulator-left-label">
+                        <EyeIcon width={14} height={14} style={{ color: "#579DFF" }} />
+                        <span>People</span>
+                      </div>
+                      <div className="cf-simulator-right-hint">
+                        Preview who gets access
+                      </div>
+                    </div>
+
+                    <div className="cf-simulator-list">
+                      {boardMembers.length === 0 ? (
+                        <div style={{ padding: "24px 16px", textAlign: "center", color: "#8C9BAB", fontSize: 12 }}>
+                          No members found on this board.
+                        </div>
+                      ) : (
+                        boardMembers.map((member) => {
+                          const badge = computeMemberAccessBadge(
+                            member,
+                            type === "formula" ? "formula" : permissionType,
+                            allowedRoles,
+                            allowedUsers
+                          );
+                          return (
+                            <div key={member.id} className="cf-simulator-row">
+                              <div className="cf-simulator-user-left">
+                                {member.avatar ? (
+                                  <img
+                                    src={member.avatar}
+                                    alt={member.name}
+                                    className="cf-simulator-avatar"
+                                  />
+                                ) : (
+                                  <div
+                                    className="cf-simulator-avatar"
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      background: "#0C66E4",
+                                      color: "#FFFFFF",
+                                      fontSize: 11,
+                                      fontWeight: 700,
+                                      flexShrink: 0,
+                                      borderRadius: "50%",
+                                    }}
+                                  >
+                                    {member.initials || (member.name ? member.name.slice(0, 2).toUpperCase() : "BM")}
+                                  </div>
+                                )}
+                                <div className="cf-simulator-user-info">
+                                  <span className="cf-simulator-name">{member.name}</span>
+                                  <span className="cf-simulator-role">{member.role}</span>
+                                </div>
+                              </div>
+                              <span className={`cf-access-badge ${badge.className}`}>
+                                {badge.label}
+                              </span>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1132,30 +1717,67 @@ export default function BoardFieldsPopup({ t }) {
                 </label>
               </div>
               <div className="cf-placeholder" style={{ marginTop: 16 }}>
-                Card Attachment & Front Display settings — Active
+                Card Attachment &amp; Front Display settings — Active
               </div>
             </div>
           )}
         </div>
 
-        {/* Bottom Actions Footer */}
-        <div className="cf-create-footer">
-          <div className="cf-create-actions">
-            <button
-              type="button"
-              className="cf-btn-cancel"
-              onClick={() => setView("main")}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              className="cf-btn-save"
-              onClick={handleSaveField}
-            >
-              Save Custom Field
-            </button>
+        {/* Bottom Simulation Footer matching Screenshot */}
+        <div className="cf-footer-bar">
+          <div className="cf-simulation-box">
+            <span>Simulating as:</span>
+            <div className="cf-custom-select-wrapper" ref={roleDropdownRef}>
+              <button
+                type="button"
+                className="cf-custom-select-trigger"
+                onClick={() => setRoleMenuOpen((prev) => !prev)}
+              >
+                <span>{simulatedRole}</span>
+                <span
+                  className="cf-custom-select-chevron"
+                  style={{ transform: roleMenuOpen ? "rotate(180deg)" : "none" }}
+                >
+                  ▾
+                </span>
+              </button>
+
+              {roleMenuOpen && (
+                <div className="cf-custom-select-menu">
+                  {boardMembers.map((mem) => {
+                    const label = `${mem.name} (${mem.role})`;
+                    const isSelected = label === simulatedRole;
+                    return (
+                      <button
+                        key={mem.id}
+                        type="button"
+                        className={`cf-custom-select-item ${isSelected ? "selected" : ""}`}
+                        onClick={() => {
+                          setSimulatedRole(label);
+                          try {
+                            localStorage.setItem("cf_simulated_role", label);
+                            localStorage.setItem("cf_simulated_member_id", mem.id);
+                          } catch {}
+                          setRoleMenuOpen(false);
+                        }}
+                      >
+                        <span className="cf-custom-select-item-text">{label}</span>
+                        {isSelected && <span className="cf-custom-select-item-check">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
+
+          <button
+            type="button"
+            className="cf-btn-done"
+            onClick={() => setView("main")}
+          >
+            Done
+          </button>
         </div>
       </div>
     );
@@ -1280,6 +1902,13 @@ export default function BoardFieldsPopup({ t }) {
         </span>
       );
     }
+    if (pLower.includes("everyone") || pLower.includes("anyone")) {
+      return (
+        <span className="cf-perm-badge" style={{ color: "#4BCE97" }} title={perm}>
+          <span>Everyone on Board</span>
+        </span>
+      );
+    }
     return (
       <span className="cf-perm-badge cf-perm-gray">
         <span>{perm}</span>
@@ -1290,6 +1919,15 @@ export default function BoardFieldsPopup({ t }) {
   /* ─── Main Panel View (Custom Fields Pro Dashboard) ─── */
   return (
     <div className="cf-panel">
+      {/* Hidden Import File Input */}
+      <input
+        type="file"
+        ref={importFileRef}
+        accept=".json"
+        style={{ display: "none" }}
+        onChange={handleFileChange}
+      />
+
       {/* Top Header */}
       <div className="cf-header">
         <div className="cf-header-icon">
@@ -1304,236 +1942,482 @@ export default function BoardFieldsPopup({ t }) {
             Manage field types, calculations, card front badges, and <span className="cf-lock-inline"><LockIcon width={11} height={11} /></span> field-level edit permissions.
           </div>
         </div>
+        <div className="cf-header-actions">
+          <button type="button" className="cf-btn-header" onClick={handleExportSchema}>
+            <ExportIcon width={14} height={14} />
+            <span>Export</span>
+          </button>
+          <button type="button" className="cf-btn-header" onClick={handleImportClick}>
+            <ImportIcon width={14} height={14} />
+            <span>Import</span>
+          </button>
+          <button type="button" className="cf-btn-close" onClick={handleClose} title="Close">
+            <CloseIcon width={16} height={16} />
+          </button>
+        </div>
       </div>
 
-      {/* Main Dashboard Container */}
-      <div className="cf-main-dashboard">
-        {/* Subtoolbar */}
-        <div className="cf-subtoolbar">
-          <button type="button" className="cf-tab-pill">
-            <span className="cf-tab-pill-icon">
-              <LayersIcon width={16} height={16} />
-            </span>
-            <span>All Fields ({filteredFields.length})</span>
-          </button>
+      {/* Top Tabs */}
+      <div className="cf-top-tabs">
+        <button
+          type="button"
+          className={`cf-top-tab ${mainTab === "fields" ? "active" : ""}`}
+          onClick={() => setMainTab("fields")}
+        >
+          <LayersIcon width={15} height={15} />
+          <span>All Fields ({schema.length})</span>
+        </button>
+        <button
+          type="button"
+          className={`cf-top-tab matrix-tab ${mainTab === "matrix" ? "active" : ""}`}
+          onClick={() => setMainTab("matrix")}
+        >
+          <ShieldIcon width={14} height={14} style={{ color: "#FFAB00" }} />
+          <LockIcon width={12} height={12} style={{ color: "#FFAB00", marginLeft: -4 }} />
+          <span>Permission Matrix</span>
+        </button>
+        <button
+          type="button"
+          className={`cf-top-tab ${mainTab === "templates" ? "active" : ""}`}
+          onClick={() => setMainTab("templates")}
+        >
+          <SparkleIcon width={14} height={14} />
+          <span>Field Templates</span>
+        </button>
+      </div>
 
-          <button
-            type="button"
-            className="cf-btn-new-field-primary"
-            onClick={() => handleStartAdd()}
-          >
-            + New Custom Field
-          </button>
-        </div>
+      {/* Main Dashboard Container (All Fields Tab) */}
+      {mainTab === "fields" && (
+        <div className="cf-main-dashboard">
+          {/* Subtoolbar */}
+          <div className="cf-subtoolbar">
+            <button type="button" className="cf-tab-pill">
+              <span className="cf-tab-pill-icon">
+                <LayersIcon width={16} height={16} />
+              </span>
+              <span>All Fields ({filteredFields.length})</span>
+            </button>
 
-        {/* Filter & Stats Row */}
-        <div className="cf-filter-row">
-          <div className="cf-search-wrapper">
-            <input
-              type="text"
-              className="cf-search-input"
-              placeholder="Search custom fields by name, type, description..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+            <button
+              type="button"
+              className="cf-btn-new-field-primary"
+              onClick={() => handleStartAdd()}
+            >
+              + New Custom Field
+            </button>
           </div>
 
-          <div className="cf-stats-group">
-            <span className="cf-stat-front">
-              <span className="cf-stat-front-dot"></span>
-              Show on Front: {frontBadgeCount}
-            </span>
-            <span className="cf-stat-locked">
-              <LockIcon width={12} height={12} />
-              Permission Locked: {lockedCount}
-            </span>
+          {/* Filter & Stats Row */}
+          <div className="cf-filter-row">
+            <div className="cf-search-wrapper">
+              <input
+                type="text"
+                className="cf-search-input"
+                placeholder="Search custom fields by name, type, description..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            <div className="cf-stats-group">
+              <span className="cf-stat-front">
+                <span className="cf-stat-front-dot"></span>
+                Show on Front: {frontBadgeCount}
+              </span>
+              <span className="cf-stat-locked">
+                <LockIcon width={12} height={12} />
+                Permission Locked: {lockedCount}
+              </span>
+            </div>
+          </div>
+
+          {/* Table Wrapper */}
+          <div className="cf-table-wrapper">
+            {filteredFields.length > 0 ? (
+              <table className="cf-table">
+                <thead>
+                  <tr>
+                    <th className="center" style={{ width: 70 }}>ORDER</th>
+                    <th>FIELD NAME &amp; TYPE</th>
+                    <th>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                        <LockIcon width={11} height={11} /> EDIT PERMISSION
+                      </span>
+                    </th>
+                    <th>CARD FRONT</th>
+                    <th>SCOPE</th>
+                    <th style={{ textAlign: "right", paddingRight: 20 }}>ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredFields.map((field, idx) => (
+                    <tr key={field.id}>
+                      {/* Order */}
+                      <td style={{ textAlign: "center" }}>
+                        <div className="cf-col-order">
+                          <button
+                            type="button"
+                            className="cf-btn-arrow"
+                            onClick={() => handleMoveField(idx, -1)}
+                            disabled={idx === 0}
+                            title="Move Up"
+                          >
+                            <ArrowUpIcon width={13} height={13} />
+                          </button>
+                          <span className="cf-order-index">{idx + 1}</span>
+                          <button
+                            type="button"
+                            className="cf-btn-arrow"
+                            onClick={() => handleMoveField(idx, 1)}
+                            disabled={idx === filteredFields.length - 1}
+                            title="Move Down"
+                          >
+                            <ArrowDownIcon width={13} height={13} />
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* Field Name & Type */}
+                      <td>
+                        <div className="cf-col-name-group">
+                          {renderTypeIcon(field.type)}
+                          <div className="cf-field-info-text">
+                            <div className="cf-field-name-title">
+                              <span>{field.name}</span>
+                            </div>
+                            {renderTypeSubtitle(field)}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Edit Permission */}
+                      <td>{renderPermissionBadge(field)}</td>
+
+                      {/* Card Front Badge Toggle */}
+                      <td>
+                        {field.showBadgeFront !== false ? (
+                          <button
+                            type="button"
+                            className="cf-badge-front-pill"
+                            onClick={() => handleToggleFrontBadge(field.id)}
+                            title="Toggle front badge display"
+                          >
+                            <span>Front Badge</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="cf-badge-details-pill"
+                            onClick={() => handleToggleFrontBadge(field.id)}
+                            title="Toggle front badge display"
+                          >
+                            <span>Details Only</span>
+                          </button>
+                        )}
+                      </td>
+
+                      {/* Scope */}
+                      <td>
+                        <span className="cf-scope-badge">{field.scope || "All"}</span>
+                      </td>
+
+                      {/* Actions */}
+                      <td style={{ textAlign: "right", paddingRight: 20 }}>
+                        <div className="cf-actions-cell" style={{ justifyContent: "flex-end" }}>
+                          <button
+                            type="button"
+                            className="cf-action-btn"
+                            onClick={() => handleDuplicateField(field)}
+                            title="Duplicate Field"
+                          >
+                            <CopyIcon width={14} height={14} />
+                          </button>
+                          <button
+                            type="button"
+                            className="cf-action-btn"
+                            onClick={() => handleStartEdit(field)}
+                            title="Edit Field"
+                          >
+                            <EditIcon width={14} height={14} />
+                          </button>
+                          <button
+                            type="button"
+                            className="cf-action-btn danger"
+                            onClick={() => handleRequestDelete(field)}
+                            title="Delete Field"
+                          >
+                            <TrashIcon width={14} height={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="cf-empty-state">
+                <p>No custom fields found{searchQuery ? ` matching "${searchQuery}"` : ""}.</p>
+                <button
+                  type="button"
+                  className="cf-btn-new-field-primary"
+                  onClick={() => handleStartAdd()}
+                  style={{ marginTop: 8 }}
+                >
+                  + New Custom Field
+                </button>
+              </div>
+            )}
           </div>
         </div>
+      )}
 
-        {/* Table Wrapper */}
-        <div className="cf-table-wrapper">
-          {filteredFields.length > 0 ? (
-            <table className="cf-table">
+      {/* Permission Matrix Tab */}
+      {mainTab === "matrix" && (
+        <div className="cf-matrix-wrapper">
+          {/* Summary Stat Cards */}
+          <div className="cf-matrix-summary-row">
+            <div className="cf-matrix-stat-card">
+              <div className="cf-matrix-stat-icon" style={{ background: "rgba(124, 92, 252, 0.15)", color: "#9B8AFF" }}>
+                <LayersIcon width={16} height={16} />
+              </div>
+              <div>
+                <div className="cf-matrix-stat-val">{schema.length}</div>
+                <div className="cf-matrix-stat-lbl">Total Custom Fields</div>
+              </div>
+            </div>
+
+            <div className="cf-matrix-stat-card">
+              <div className="cf-matrix-stat-icon" style={{ background: "rgba(255, 171, 0, 0.15)", color: "#FFAB00" }}>
+                <LockIcon width={14} height={14} />
+              </div>
+              <div>
+                <div className="cf-matrix-stat-val">{lockedCount}</div>
+                <div className="cf-matrix-stat-lbl">Permission Locked</div>
+              </div>
+            </div>
+
+            <div className="cf-matrix-stat-card">
+              <div className="cf-matrix-stat-icon" style={{ background: "rgba(75, 206, 151, 0.15)", color: "#4BCE97" }}>
+                <ShieldIcon width={16} height={16} />
+              </div>
+              <div>
+                <div className="cf-matrix-stat-val">{schema.length - lockedCount}</div>
+                <div className="cf-matrix-stat-lbl">Open to All Members</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Matrix Filter & Add */}
+          <div className="cf-filter-row" style={{ marginTop: 4 }}>
+            <div className="cf-search-wrapper" style={{ flex: 1 }}>
+              <input
+                type="text"
+                className="cf-search-input"
+                placeholder="Filter permissions matrix by field name or type..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              className="cf-btn-new-field-primary"
+              onClick={() => handleStartAdd()}
+            >
+              + New Custom Field
+            </button>
+          </div>
+
+          {/* Matrix Table */}
+          <div className="cf-matrix-table-container">
+            <table className="cf-matrix-table">
               <thead>
                 <tr>
-                  <th className="center" style={{ width: 70 }}>ORDER</th>
-                  <th>FIELD NAME &amp; TYPE</th>
-                  <th>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                      <LockIcon width={11} height={11} /> EDIT PERMISSION
-                    </span>
-                  </th>
-                  <th>CARD FRONT</th>
-                  <th>SCOPE</th>
-                  <th style={{ textAlign: "right", paddingRight: 20 }}>ACTIONS</th>
+                  <th>CUSTOM FIELD</th>
+                  <th>EDIT PERMISSION RULE</th>
+                  {boardMembers.map((mem) => (
+                    <th key={mem.id} style={{ textAlign: "center" }}>
+                      <div>{mem.name.split(" ")[0].toUpperCase()}</div>
+                      <div style={{ fontSize: 9.5, opacity: 0.7, fontWeight: 400 }}>
+                        {mem.role.replace("Board ", "")}
+                      </div>
+                    </th>
+                  ))}
+                  <th style={{ textAlign: "right", paddingRight: 16 }}>CONFIGURE</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredFields.map((field, idx) => (
-                  <tr key={field.id}>
-                    {/* Order */}
-                    <td style={{ textAlign: "center" }}>
-                      <div className="cf-col-order">
-                        <button
-                          type="button"
-                          className="cf-btn-arrow"
-                          onClick={() => handleMoveField(idx, -1)}
-                          disabled={idx === 0}
-                          title="Move up"
-                        >
-                          <ArrowUpIcon width={13} height={13} />
-                        </button>
-                        <button
-                          type="button"
-                          className="cf-btn-arrow"
-                          onClick={() => handleMoveField(idx, 1)}
-                          disabled={idx === filteredFields.length - 1}
-                          title="Move down"
-                        >
-                          <ArrowDownIcon width={13} height={13} />
-                        </button>
-                      </div>
-                    </td>
+                {filteredFields.map((field) => {
+                  const pType = field.permissionType || parsePermissionType(field.editPermission);
+                  const pRoles = field.allowedRoles || parseRolesFromPermString(field.editPermission);
+                  const pUsers = field.allowedUsers || [];
 
-                    {/* Field Name & Type */}
-                    <td>
-                      <div className="cf-field-cell">
-                        {renderTypeIcon(field.type)}
-                        <div className="cf-field-text-group">
-                          <span className="cf-field-name-title">{field.name}</span>
-                          {renderTypeSubtitle(field)}
+                  return (
+                    <tr key={field.id}>
+                      <td>
+                        <div className="cf-matrix-field-name">
+                          {renderTypeIcon(field.type)}
+                          <div>
+                            <div>{field.name}</div>
+                            <div style={{ fontSize: 11, color: "var(--cf-text-secondary)" }}>
+                              {field.type}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-
-                    {/* Edit Permission */}
-                    <td>{renderPermissionBadge(field)}</td>
-
-                    {/* Card Front Badge */}
-                    <td>
-                      <button
-                        type="button"
-                        className={field.showBadgeFront !== false ? "cf-badge-front-pill" : "cf-badge-details-pill"}
-                        onClick={() => handleToggleFrontBadge(field.id)}
-                        title="Click to toggle card front badge display"
-                      >
-                        {field.showBadgeFront !== false ? "✓ Front Badge" : "Details Only"}
-                      </button>
-                    </td>
-
-                    {/* Scope */}
-                    <td>
-                      <span className="cf-scope-badge">{field.scope || "All"}</span>
-                    </td>
-
-                    {/* Actions */}
-                    <td>
-                      <div className="cf-actions-cell" style={{ justifyContent: "flex-end", paddingRight: 6 }}>
+                      </td>
+                      <td>{renderPermissionBadge(field)}</td>
+                      {boardMembers.map((mem) => {
+                        const access = computeMemberAccessBadge(
+                          mem,
+                          field.type === "formula" ? "formula" : pType,
+                          pRoles,
+                          pUsers
+                        );
+                        const canEdit = access.label.includes("Can Edit") || access.label.includes("Override");
+                        return (
+                          <td key={mem.id} style={{ textAlign: "center" }}>
+                            {canEdit ? (
+                              <span className="cf-matrix-indicator-yes" title={access.label}>
+                                ✓
+                              </span>
+                            ) : (
+                              <span className="cf-matrix-indicator-no" title={access.label}>
+                                🔒
+                              </span>
+                            )}
+                          </td>
+                        );
+                      })}
+                      <td style={{ textAlign: "right", paddingRight: 16 }}>
                         <button
                           type="button"
-                          className="cf-action-btn"
-                          onClick={() => handleStartEdit(field)}
-                          title="Edit Custom Field"
+                          className="cf-matrix-btn-edit"
+                          onClick={() => {
+                            handleStartEdit(field);
+                            setStepTab("permissions");
+                          }}
                         >
-                          <EditIcon width={14} height={14} />
+                          <LockIcon width={11} height={11} style={{ color: "#FFAB00" }} />
+                          <span>Edit</span>
                         </button>
-                        <button
-                          type="button"
-                          className="cf-action-btn"
-                          onClick={() => handleDuplicateField(field)}
-                          title="Duplicate Custom Field"
-                        >
-                          <CopyIcon width={14} height={14} />
-                        </button>
-                        <button
-                          type="button"
-                          className="cf-action-btn danger"
-                          onClick={() => handleRequestDelete(field)}
-                          title="Delete Custom Field"
-                        >
-                          <TrashIcon width={14} height={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
-          ) : (
-            <div className="cf-empty-state">
-              <p>No custom fields found{searchQuery ? ` matching "${searchQuery}"` : ""}.</p>
-              <button
-                type="button"
-                className="cf-btn-new-field-primary"
-                onClick={() => handleStartAdd()}
-                style={{ marginTop: 8 }}
-              >
-                + New Custom Field
-              </button>
-            </div>
-          )}
+          </div>
         </div>
+      )}
 
-        {/* Bottom Footer Bar */}
-        <div className="cf-footer-bar">
-          <div className="cf-simulation-box">
-            <span>Simulating as:</span>
-            <div className="cf-custom-select-wrapper" ref={roleDropdownRef}>
-              <button
-                type="button"
-                className="cf-custom-select-trigger"
-                onClick={() => setRoleMenuOpen((prev) => !prev)}
-              >
-                <span>{simulatedRole}</span>
-                <span
-                  className="cf-custom-select-chevron"
-                  style={{ transform: roleMenuOpen ? "rotate(180deg)" : "none" }}
-                >
-                  ▾
-                </span>
-              </button>
-
-              {roleMenuOpen && (
-                <div className="cf-custom-select-menu">
-                  {(memberOptions.length > 0
-                    ? memberOptions
-                    : [
-                        `${boardAdminName} (Board Administrator)`,
-                        `${boardAdminName} (Project Lead)`,
-                        `${boardAdminName} (Card Member)`,
-                        "Guest Viewer (Read-only)",
-                      ]
-                  ).map((opt) => {
-                    const isSelected = opt === simulatedRole;
-                    return (
-                      <button
-                        key={opt}
-                        type="button"
-                        className={`cf-custom-select-item ${isSelected ? "selected" : ""}`}
-                        onClick={() => {
-                          setSimulatedRole(opt);
-                          setRoleMenuOpen(false);
-                        }}
-                      >
-                        <span className="cf-custom-select-item-text">{opt}</span>
-                        {isSelected && <span className="cf-custom-select-item-check">✓</span>}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+      {/* Field Templates Tab */}
+      {mainTab === "templates" && (
+        <div className="cf-templates-wrapper">
+          <div style={{ marginBottom: 4 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: "#F7F8F9", marginBottom: 2 }}>
+              Recommended Custom Field Templates
+            </h3>
+            <p style={{ fontSize: 12, color: "#8C9BAB" }}>
+              Quickly install pre-configured custom fields with formulas, validation, and permissions ready out-of-the-box.
+            </p>
           </div>
 
-          <button
-            type="button"
-            className="cf-btn-done"
-            onClick={handleClose}
-          >
-            Done
-          </button>
+          <div className="cf-templates-grid">
+            {PRESET_TEMPLATES.map((tpl) => (
+              <div key={tpl.id} className="cf-template-card">
+                <div className="cf-template-header">
+                  <div className="cf-template-icon">
+                    {renderTypeIcon(tpl.type)}
+                  </div>
+                  <div>
+                    <div className="cf-template-title">{tpl.name}</div>
+                    <div className="cf-template-desc">{tpl.desc}</div>
+                  </div>
+                </div>
+
+                <div className="cf-template-meta">
+                  <span className="cf-scope-badge">{tpl.config.editPermission}</span>
+                  {tpl.config.showBadgeFront && (
+                    <span className="cf-badge-front-pill">Front Badge</span>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  className="cf-btn-apply-template"
+                  onClick={() => handleApplyTemplate(tpl)}
+                >
+                  <span>+ Install Template</span>
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
+      )}
+
+      {/* Bottom Footer Bar */}
+      <div className="cf-footer-bar">
+        <div className="cf-simulation-box">
+          <span>Simulating as:</span>
+          <div className="cf-custom-select-wrapper" ref={roleDropdownRef}>
+            <button
+              type="button"
+              className="cf-custom-select-trigger"
+              onClick={() => setRoleMenuOpen((prev) => !prev)}
+            >
+              <span>{simulatedRole}</span>
+              <span
+                className="cf-custom-select-chevron"
+                style={{ transform: roleMenuOpen ? "rotate(180deg)" : "none" }}
+              >
+                ▾
+              </span>
+            </button>
+
+            {roleMenuOpen && (
+              <div className="cf-custom-select-menu">
+                {boardMembers.map((mem) => {
+                  const label = `${mem.name} (${mem.role})`;
+                  const isSelected = label === simulatedRole;
+                  return (
+                    <button
+                      key={mem.id}
+                      type="button"
+                      className={`cf-custom-select-item ${isSelected ? "selected" : ""}`}
+                      onClick={() => {
+                        setSimulatedRole(label);
+                        try {
+                          localStorage.setItem("cf_simulated_role", label);
+                          localStorage.setItem("cf_simulated_member_id", mem.id);
+                        } catch {}
+                        setRoleMenuOpen(false);
+                      }}
+                    >
+                      <span className="cf-custom-select-item-text">{label}</span>
+                      {isSelected && <span className="cf-custom-select-item-check">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="cf-btn-done"
+          onClick={handleClose}
+        >
+          Done
+        </button>
       </div>
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="cf-toast">
+          <CheckIcon width={16} height={16} />
+          <span>{toastMessage}</span>
+        </div>
+      )}
 
       {/* In-App Delete Confirmation Modal */}
       {deleteTargetField && (

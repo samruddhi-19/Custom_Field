@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
-import { getBoardSchema, getCardFieldValues, saveCardFieldValues } from "../lib/trelloApi.js";
+import { getBoardSchema, getCardFieldValues, saveCardFieldValues, getBoardMembers } from "../lib/trelloApi.js";
 import { styles } from "../lib/ui.js";
-import { SpinnerIcon } from "../ui/icons.jsx";
+import { SpinnerIcon, LockIcon } from "../ui/icons.jsx";
+import {
+  computeMemberAccessBadge,
+  parsePermissionType,
+  parseRolesFromPermString,
+} from "../boardfields/BoardFieldsPopup.jsx";
 
 function evaluateFormula(formula, schema, values) {
   if (!formula || typeof formula !== "string") return null;
@@ -59,12 +64,46 @@ export default function CardFieldsPopup({ t }) {
   const [values, setValues] = useState({});
   const [loading, setLoading] = useState(true);
 
+  const [boardMembers, setBoardMembers] = useState([]);
+  // Simulated member for testing & permission enforcement
+  const [simulatedMemberId, setSimulatedMemberId] = useState(() => {
+    try {
+      const stored = localStorage.getItem("cf_simulated_member_id");
+      if (stored) return stored;
+    } catch {}
+    return "";
+  });
+
+  const currentMember = boardMembers.find((m) => m.id === simulatedMemberId) || boardMembers[0] || {
+    id: "mem_board",
+    name: "Board Member",
+    role: "Board Administrator",
+    isAdmin: true,
+  };
+
+  useEffect(() => {
+    function handleStorage() {
+      try {
+        const stored = localStorage.getItem("cf_simulated_member_id");
+        if (stored) {
+          setSimulatedMemberId(stored);
+        }
+      } catch {}
+    }
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
   useEffect(() => {
     async function load() {
       try {
-        const [s, v] = await Promise.all([getBoardSchema(t), getCardFieldValues(t)]);
+        const [s, v, m] = await Promise.all([getBoardSchema(t), getCardFieldValues(t), getBoardMembers(t)]);
         setSchema(s);
         setValues(v);
+        setBoardMembers(m);
+        if (m && m.length > 0) {
+          setSimulatedMemberId((prev) => (prev && m.some((item) => item.id === prev) ? prev : (m.find((item) => item.isAdmin) || m[0]).id));
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -76,7 +115,7 @@ export default function CardFieldsPopup({ t }) {
 
   useEffect(() => {
     t.sizeTo("#root").catch(() => {});
-  }, [t, schema, values, loading]);
+  }, [t, schema, values, loading, simulatedMemberId]);
 
   async function handleChange(fieldId, val) {
     const next = {
@@ -139,8 +178,16 @@ export default function CardFieldsPopup({ t }) {
     );
   }
 
+  const disabledInputStyle = {
+    opacity: 0.6,
+    cursor: "not-allowed",
+    backgroundColor: "#161A1D",
+    borderColor: "#2c333a",
+  };
+
   return (
     <div style={styles.wrapper}>
+      {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <h4 style={{ margin: 0, color: "#F7F8F9", fontSize: 13.5 }}>Custom Fields</h4>
         <button
@@ -152,30 +199,82 @@ export default function CardFieldsPopup({ t }) {
         </button>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: 14 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: 14 }}>
         {schema.map((field) => {
           const val = values[field.id];
 
+          // Compute field permission for simulated active member
+          const permType = field.permissionType || parsePermissionType(field.editPermission);
+          const allowedRoles = field.allowedRoles || parseRolesFromPermString(field.editPermission);
+          const allowedUsers = field.allowedUsers || [];
+          const access = computeMemberAccessBadge(currentMember, permType, allowedRoles, allowedUsers);
+          const isFormula = field.type === "formula";
+          const canEdit = !isFormula && !access.className.includes("locked") && !access.className.includes("guest");
+
           return (
             <div key={field.id}>
-              <label style={styles.label}>{field.name}</label>
+              {/* Field Label & Lock Indicator */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                <label style={{ ...styles.label, margin: 0 }}>{field.name}</label>
+                {!canEdit && (
+                  <span
+                    title={access.label}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      color: access.className.includes("guest") ? "#FFAB00" : isFormula ? "#7C5CFC" : "#85B8FF",
+                      background: access.className.includes("guest")
+                        ? "rgba(255, 171, 0, 0.12)"
+                        : isFormula
+                        ? "rgba(124, 92, 252, 0.12)"
+                        : "rgba(133, 184, 255, 0.1)",
+                      border: `1px solid ${
+                        access.className.includes("guest")
+                          ? "rgba(255, 171, 0, 0.28)"
+                          : isFormula
+                          ? "rgba(124, 92, 252, 0.28)"
+                          : "rgba(133, 184, 255, 0.2)"
+                      }`,
+                      borderRadius: 4,
+                      padding: "1px 6px",
+                    }}
+                  >
+                    <LockIcon width={10} height={10} />
+                    <span>{access.label.replace("🔒 ", "").replace("✓ ", "")}</span>
+                  </span>
+                )}
+              </div>
 
               {field.type === "text" && (
                 field.multiline ? (
                   <textarea
-                    style={{ ...styles.input, minHeight: 65, resize: "vertical", fontFamily: "inherit" }}
+                    disabled={!canEdit}
+                    style={{
+                      ...styles.input,
+                      minHeight: 65,
+                      resize: "vertical",
+                      fontFamily: "inherit",
+                      ...(!canEdit ? disabledInputStyle : {}),
+                    }}
                     placeholder={field.placeholder || `Enter ${field.name}...`}
                     value={val || ""}
-                    onChange={(e) => handleChange(field.id, e.target.value)}
+                    onChange={(e) => canEdit && handleChange(field.id, e.target.value)}
                     rows={3}
                   />
                 ) : (
                   <input
                     type="text"
-                    style={styles.input}
+                    disabled={!canEdit}
+                    style={{
+                      ...styles.input,
+                      ...(!canEdit ? disabledInputStyle : {}),
+                    }}
                     placeholder={field.placeholder || `Enter ${field.name}...`}
                     value={val || ""}
-                    onChange={(e) => handleChange(field.id, e.target.value)}
+                    onChange={(e) => canEdit && handleChange(field.id, e.target.value)}
                   />
                 )
               )}
@@ -185,12 +284,16 @@ export default function CardFieldsPopup({ t }) {
                   {field.prefix && <span style={{ color: "#9FADBC", fontSize: 13, fontWeight: 600 }}>{field.prefix}</span>}
                   <input
                     type="number"
+                    disabled={!canEdit}
                     step={field.decimalPlaces ? `0.${"0".repeat(Math.max(0, field.decimalPlaces - 1))}1` : "any"}
                     min={field.minValue !== undefined ? field.minValue : undefined}
-                    style={styles.input}
+                    style={{
+                      ...styles.input,
+                      ...(!canEdit ? disabledInputStyle : {}),
+                    }}
                     placeholder="0"
                     value={val !== undefined && val !== null ? val : ""}
-                    onChange={(e) => handleChange(field.id, e.target.value === "" ? null : Number(e.target.value))}
+                    onChange={(e) => canEdit && handleChange(field.id, e.target.value === "" ? null : Number(e.target.value))}
                   />
                   {field.suffix && <span style={{ color: "#9FADBC", fontSize: 13, fontWeight: 500 }}>{field.suffix}</span>}
                 </div>
@@ -198,9 +301,13 @@ export default function CardFieldsPopup({ t }) {
 
               {field.type === "dropdown" && (
                 <select
-                  style={styles.select}
+                  disabled={!canEdit}
+                  style={{
+                    ...styles.select,
+                    ...(!canEdit ? disabledInputStyle : {}),
+                  }}
                   value={val || ""}
-                  onChange={(e) => handleChange(field.id, e.target.value)}
+                  onChange={(e) => canEdit && handleChange(field.id, e.target.value)}
                 >
                   <option value="">-- None --</option>
                   {field.options?.map((opt) => (
@@ -214,9 +321,13 @@ export default function CardFieldsPopup({ t }) {
               {field.type === "date" && (
                 <input
                   type={field.dateTimeMode === "time" ? "time" : field.dateTimeMode === "date" ? "date" : "datetime-local"}
-                  style={styles.input}
+                  disabled={!canEdit}
+                  style={{
+                    ...styles.input,
+                    ...(!canEdit ? disabledInputStyle : {}),
+                  }}
                   value={val || ""}
-                  onChange={(e) => handleChange(field.id, e.target.value)}
+                  onChange={(e) => canEdit && handleChange(field.id, e.target.value)}
                 />
               )}
 
@@ -232,7 +343,8 @@ export default function CardFieldsPopup({ t }) {
                             display: "flex",
                             alignItems: "center",
                             gap: "8px",
-                            cursor: "pointer",
+                            cursor: canEdit ? "pointer" : "not-allowed",
+                            opacity: canEdit ? 1 : 0.65,
                             fontSize: 13,
                             color: isChecked ? "#9FADBC" : "#DCDFE4",
                             textDecoration: isChecked ? "line-through" : "none",
@@ -240,14 +352,16 @@ export default function CardFieldsPopup({ t }) {
                         >
                           <input
                             type="checkbox"
+                            disabled={!canEdit}
                             checked={isChecked}
                             onChange={(e) => {
+                              if (!canEdit) return;
                               const currentMap = (typeof val === "object" && val) ? { ...val } : {};
                               if (e.target.checked) currentMap[item.id] = true;
                               else delete currentMap[item.id];
                               handleChange(field.id, currentMap);
                             }}
-                            style={{ accentColor: "#579DFF", cursor: "pointer" }}
+                            style={{ accentColor: "#579DFF", cursor: canEdit ? "pointer" : "not-allowed" }}
                           />
                           <span>{item.text}</span>
                         </label>
@@ -255,12 +369,13 @@ export default function CardFieldsPopup({ t }) {
                     })}
                   </div>
                 ) : (
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: 13 }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: canEdit ? "pointer" : "not-allowed", opacity: canEdit ? 1 : 0.65, fontSize: 13 }}>
                     <input
                       type="checkbox"
+                      disabled={!canEdit}
                       checked={Boolean(val)}
-                      onChange={(e) => handleChange(field.id, e.target.checked)}
-                      style={{ accentColor: "#579DFF" }}
+                      onChange={(e) => canEdit && handleChange(field.id, e.target.checked)}
+                      style={{ accentColor: "#579DFF", cursor: canEdit ? "pointer" : "not-allowed" }}
                     />
                     <span>Active / Done</span>
                   </label>
@@ -271,7 +386,8 @@ export default function CardFieldsPopup({ t }) {
                 <div style={{ display: "flex", gap: "6px" }}>
                   <button
                     type="button"
-                    onClick={() => handleChange(field.id, true)}
+                    disabled={!canEdit}
+                    onClick={() => canEdit && handleChange(field.id, true)}
                     style={{
                       flex: 1,
                       padding: "7px 12px",
@@ -281,7 +397,8 @@ export default function CardFieldsPopup({ t }) {
                       color: val === true ? "#4BCE97" : "#9FADBC",
                       fontWeight: val === true ? 600 : 500,
                       fontSize: 12.5,
-                      cursor: "pointer",
+                      cursor: canEdit ? "pointer" : "not-allowed",
+                      opacity: canEdit ? 1 : 0.65,
                       transition: "all 0.15s ease",
                     }}
                   >
@@ -289,7 +406,8 @@ export default function CardFieldsPopup({ t }) {
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleChange(field.id, false)}
+                    disabled={!canEdit}
+                    onClick={() => canEdit && handleChange(field.id, false)}
                     style={{
                       flex: 1,
                       padding: "7px 12px",
@@ -299,7 +417,8 @@ export default function CardFieldsPopup({ t }) {
                       color: val === false ? "#BDB4FE" : "#9FADBC",
                       fontWeight: val === false ? 600 : 500,
                       fontSize: 12.5,
-                      cursor: "pointer",
+                      cursor: canEdit ? "pointer" : "not-allowed",
+                      opacity: canEdit ? 1 : 0.65,
                       transition: "all 0.15s ease",
                     }}
                   >
@@ -316,13 +435,15 @@ export default function CardFieldsPopup({ t }) {
                       <button
                         key={star}
                         type="button"
-                        onClick={() => handleChange(field.id, current === star ? 0 : star)}
+                        disabled={!canEdit}
+                        onClick={() => canEdit && handleChange(field.id, current === star ? 0 : star)}
                         style={{
                           background: "none",
                           border: "none",
                           fontSize: "18px",
                           color: star <= current ? "#FFAB00" : "#454F59",
-                          cursor: "pointer",
+                          cursor: canEdit ? "pointer" : "not-allowed",
+                          opacity: canEdit ? 1 : 0.5,
                           padding: "0 2px",
                         }}
                       >
@@ -367,10 +488,14 @@ export default function CardFieldsPopup({ t }) {
               {field.type === "conditional" && (
                 <input
                   type="text"
-                  style={styles.input}
+                  disabled={!canEdit}
+                  style={{
+                    ...styles.input,
+                    ...(!canEdit ? disabledInputStyle : {}),
+                  }}
                   placeholder={`Enter ${field.name}...`}
                   value={val || ""}
-                  onChange={(e) => handleChange(field.id, e.target.value)}
+                  onChange={(e) => canEdit && handleChange(field.id, e.target.value)}
                 />
               )}
             </div>
@@ -378,13 +503,61 @@ export default function CardFieldsPopup({ t }) {
         })}
       </div>
 
-      <div style={{ display: "flex", gap: "8px" }}>
+      <div style={{ display: "flex", gap: "8px", marginBottom: 12 }}>
         <button type="button" onClick={handleSave} style={{ ...styles.button, flex: 2 }}>
           Save
         </button>
         <button type="button" onClick={handleClear} style={{ ...styles.buttonSecondary, flex: 1 }}>
           Clear
         </button>
+      </div>
+
+      {/* Simulator Switcher for testing card level permissions */}
+      <div
+        style={{
+          paddingTop: 10,
+          borderTop: "1px solid #2C333A",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          fontSize: 11.5,
+          color: "#8C9BAB",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span>Simulating:</span>
+          <span style={{ color: "#579DFF", fontWeight: 600 }}>{currentMember.name}</span>
+        </div>
+        <select
+          value={simulatedMemberId}
+          onChange={(e) => {
+            const nextId = e.target.value;
+            setSimulatedMemberId(nextId);
+            try {
+              localStorage.setItem("cf_simulated_member_id", nextId);
+              const m = boardMembers.find((item) => item.id === nextId);
+              if (m) {
+                localStorage.setItem("cf_simulated_role", `${m.name} (${m.role})`);
+              }
+            } catch {}
+          }}
+          style={{
+            background: "#161A1D",
+            border: "1px solid #333C43",
+            color: "#DCDFE4",
+            borderRadius: 4,
+            padding: "3px 6px",
+            fontSize: 11,
+            cursor: "pointer",
+            outline: "none",
+          }}
+        >
+          {boardMembers.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.name} ({m.role})
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   );
