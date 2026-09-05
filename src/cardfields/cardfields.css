@@ -1,10 +1,12 @@
 /* ─── Trello Native Card Back Section Styles ─── */
 
 .cf-cardback-root {
-  background: transparent;
+  background: #22272B;
+  border: 1px solid #38414A;
+  border-radius: 8px;
   color: #DEE4EA;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-  padding: 4px 0 14px 0;
+  padding: 14px 16px;
   box-sizing: border-box;
   width: 100%;
 }
@@ -12,14 +14,14 @@
 .cf-cardback-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 20px;
+  gap: 14px 18px;
   align-items: start;
 }
 
 @media (max-width: 420px) {
   .cf-cardback-grid {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 12px;
   }
 }
 
@@ -34,7 +36,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   gap: 6px;
 }
 
@@ -159,8 +161,8 @@
 
 .cf-cardback-select {
   width: 100%;
-  padding: 6.5px 30px 6.5px 10px;
-  background: #22272B;
+  padding: 6.5px 28px 6.5px 10px;
+  background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
   color: #DEE4EA;
@@ -222,10 +224,10 @@
   flex: 1;
   display: flex;
   align-items: center;
-  background: #22272B;
+  background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
-  padding: 5.5px 10px;
+  padding: 5px 10px;
   box-sizing: border-box;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
@@ -283,13 +285,13 @@
 }
 
 .cf-btn-stepper {
-  width: 29px;
-  height: 30px;
+  width: 28px;
+  height: 29px;
   border-radius: 4px;
   border: 1px solid #38414A;
-  background: #22272B;
+  background: #1D2125;
   color: #DEE4EA;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -300,7 +302,7 @@
 }
 
 .cf-btn-stepper:hover:not(:disabled) {
-  background: #2C333A;
+  background: #282E33;
   border-color: #579DFF;
   color: #FFFFFF;
 }
@@ -315,7 +317,7 @@
   background: rgba(155, 138, 255, 0.08);
   border: 1px solid rgba(155, 138, 255, 0.25);
   border-radius: 4px;
-  padding: 8px 12px;
+  padding: 7px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -370,10 +372,10 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: #22272B;
+  background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
-  padding: 5.5px 8px;
+  padding: 5px 8px;
   box-sizing: border-box;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
@@ -435,7 +437,7 @@
 }
 
 .cf-btn-yesno.inactive {
-  background: #22272B;
+  background: #1D2125;
   border: 1px solid #38414A;
   color: #9FADBC;
 }
@@ -456,10 +458,10 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  background: #22272B;
+  background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
-  padding: 7px 10px;
+  padding: 6px 10px;
 }
 
 .cf-checklist-item {
@@ -499,15 +501,15 @@
 /* Text Input & Textarea */
 .cf-cardback-textarea {
   width: 100%;
-  background: #22272B;
+  background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
-  padding: 6.5px 10px;
+  padding: 6px 10px;
   color: #DEE4EA;
   font-size: 12px;
   font-family: inherit;
   resize: vertical;
-  min-height: 44px;
+  min-height: 42px;
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.15s ease, background 0.15s ease;
@@ -525,10 +527,10 @@
 
 .cf-cardback-input-text {
   width: 100%;
-  background: #22272B;
+  background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
-  padding: 6px 10px;
+  padding: 5.5px 10px;
   color: #DEE4EA;
   font-size: 12px;
   font-family: inherit;
@@ -547,22 +549,139 @@
   box-shadow: 0 0 0 1px #579DFF;
 }
 
-/* Empty state */
-.cf-cardback-empty {
-  text-align: center;
-  padding: 20px 14px;
-  color: #9FADBC;
-  font-size: 12.5px;
+/* Top Action Toolbar */
+.cf-cardback-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #38414A;
+  gap: 8px;
 }
 
-.cf-cardback-empty-btn {
-  margin-top: 8px;
-  background: #579DFF;
-  border: none;
-  color: #091E42;
-  font-size: 12px;
+.cf-cardback-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cf-cardback-topbar-title {
+  font-size: 13px;
   font-weight: 600;
-  padding: 6px 12px;
+  color: #DEE4EA;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cf-cardback-topbar-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9FADBC;
+  background: #282E33;
+  border: 1px solid #38414A;
+  border-radius: 10px;
+  padding: 1px 7px;
+}
+
+.cf-btn-trello-subtle {
+  background: #282E33;
+  border: 1px solid #38414A;
   border-radius: 4px;
+  color: #DEE4EA;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.cf-btn-trello-subtle:hover {
+  background: #323940;
+  border-color: #579DFF;
+  color: #579DFF;
+}
+
+/* Empty state matching Trello Card Cover structure */
+.cf-cardback-empty-box {
+  background: #22272B;
+  border: 1px dashed #454F59;
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .cf-cardback-empty-box {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+.cf-cardback-empty-iconbox {
+  width: 46px;
+  height: 46px;
+  background: #282E33;
+  border: 1px solid #38414A;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #9FADBC;
+}
+
+.cf-cardback-empty-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cf-cardback-empty-title {
+  margin: 0 0 3px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #DEE4EA;
+}
+
+.cf-cardback-empty-desc {
+  margin: 0;
+  font-size: 12px;
+  color: #9FADBC;
+  line-height: 1.4;
+}
+
+.cf-btn-trello-primary {
+  background: #579DFF;
+  color: #091E42;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cf-btn-trello-primary:hover {
+  background: #85B8FF;
+}
+
+.cf-btn-trello-primary:active {
+  background: #75A8FF;
 }

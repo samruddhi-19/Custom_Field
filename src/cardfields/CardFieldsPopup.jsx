@@ -280,19 +280,80 @@ export default function CardFieldsPopup({ t }) {
 
   if (schema.length === 0) {
     return (
-      <div className="cf-cardback-root">
-        <div className="cf-cardback-empty">
-          <p style={{ margin: 0, fontSize: 13.5 }}>No custom fields configured for this board yet.</p>
-          <button type="button" onClick={handleOpenBoardSettings} className="cf-cardback-empty-btn">
-            Configure Board Fields
-          </button>
+      <div className="cf-cardback-empty-box">
+        <div className="cf-cardback-empty-iconbox">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="3" ry="3" />
+            <line x1="7" y1="8" x2="13" y2="8" />
+            <circle cx="16.5" cy="8" r="1.5" fill="currentColor" />
+            <line x1="7" y1="12" x2="17" y2="12" />
+            <line x1="7" y1="16" x2="11" y2="16" />
+            <polyline points="14 16 15.5 17.5 18 14.5" />
+          </svg>
         </div>
+        <div className="cf-cardback-empty-info">
+          <h4 className="cf-cardback-empty-title">No custom fields yet</h4>
+          <p className="cf-cardback-empty-desc">
+            Add text, number, date, dropdown or formula fields to make tracking easier on this card.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleOpenBoardSettings}
+          className="cf-btn-trello-primary"
+        >
+          + Add Custom Field
+        </button>
       </div>
     );
   }
 
   return (
     <div className="cf-cardback-root">
+      {/* Top action toolbar matching Trello Card Cover structure */}
+      <div className="cf-cardback-topbar">
+        <div className="cf-cardback-topbar-left">
+          <span className="cf-cardback-topbar-title">
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#579DFF"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="3" ry="3" />
+              <line x1="7" y1="8" x2="13" y2="8" />
+              <circle cx="16.5" cy="8" r="1.5" fill="#579DFF" />
+              <line x1="7" y1="12" x2="17" y2="12" />
+              <line x1="7" y1="16" x2="11" y2="16" />
+              <polyline points="14 16 15.5 17.5 18 14.5" />
+            </svg>
+            <span>Custom Fields</span>
+          </span>
+          <span className="cf-cardback-topbar-badge">{schema.length} fields</span>
+        </div>
+        <button
+          type="button"
+          onClick={handleOpenBoardSettings}
+          className="cf-btn-trello-subtle"
+          title="Configure custom fields"
+        >
+          <span>+ Add Field</span>
+        </button>
+      </div>
+
       {/* 2-Column Grid matching Screenshot */}
       <div className="cf-cardback-grid">
         {schema.map((field) => {
