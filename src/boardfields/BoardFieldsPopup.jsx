@@ -801,33 +801,6 @@ export default function BoardFieldsPopup({ t }) {
           </div>
         </div>
 
-        {/* Top Tabs */}
-        <div className="cf-top-tabs">
-          <button
-            type="button"
-            className="cf-top-tab"
-            onClick={() => {
-              setMainTab("fields");
-              setView("main");
-            }}
-          >
-            <LayersIcon width={15} height={15} />
-            <span>All Fields ({schema.length})</span>
-          </button>
-          <button
-            type="button"
-            className="cf-top-tab matrix-tab"
-            onClick={() => {
-              setMainTab("matrix");
-              setView("main");
-            }}
-          >
-            <ShieldIcon width={14} height={14} />
-            <LockIcon width={12} height={12} style={{ marginLeft: -4 }} />
-            <span>Permission Matrix</span>
-          </button>
-        </div>
-
         {/* Breadcrumb Header matching Screenshot */}
         <div className="cf-create-header">
           <div className="cf-breadcrumb">
@@ -1800,30 +1773,8 @@ export default function BoardFieldsPopup({ t }) {
         </div>
       </div>
 
-      {/* Top Tabs */}
-      <div className="cf-top-tabs">
-        <button
-          type="button"
-          className={`cf-top-tab ${mainTab === "fields" ? "active" : ""}`}
-          onClick={() => setMainTab("fields")}
-        >
-          <LayersIcon width={15} height={15} />
-          <span>All Fields ({schema.length})</span>
-        </button>
-        <button
-          type="button"
-          className={`cf-top-tab matrix-tab ${mainTab === "matrix" ? "active" : ""}`}
-          onClick={() => setMainTab("matrix")}
-        >
-          <ShieldIcon width={14} height={14} />
-          <LockIcon width={12} height={12} style={{ marginLeft: -4 }} />
-          <span>Permission Matrix</span>
-        </button>
-      </div>
-
-      {/* Main Dashboard Container (All Fields Tab) */}
-      {mainTab === "fields" && (
-        <div className="cf-main-dashboard">
+      {/* Main Dashboard Container */}
+      <div className="cf-main-dashboard">
           {/* Filter & Actions Row */}
           <div className="cf-filter-row">
             <div className="cf-search-wrapper">
@@ -2005,310 +1956,62 @@ export default function BoardFieldsPopup({ t }) {
             )}
           </div>
         </div>
-      )}
-
-      {/* Permission Matrix Tab (Exact 2-Column Mockup Layout) */}
-      {mainTab === "matrix" && (
-        <div className="cf-perm-container" style={{ paddingTop: 16 }}>
-          {/* Split 2-Column Layout */}
-          <div className="cf-perm-split-layout">
-            {/* Left Column: 5 Permission Option Cards */}
-            <div className="cf-perm-col-left">
-              <div className="cf-perm-options-list">
-                {/* 1. Everyone on Board */}
-                <div
-                  className={`cf-perm-option-card ${matrixPermType === "everyone" ? "selected" : ""}`}
-                  onClick={() => setMatrixPermType("everyone")}
-                >
-                  <div className="cf-perm-option-info">
-                    <div className="cf-perm-option-title">Everyone on Board</div>
-                    <div className="cf-perm-option-desc">
-                      Any active team member on the board can modify this value.
-                    </div>
-                  </div>
-                  {matrixPermType === "everyone" ? (
-                    <div className="cf-perm-check-circle">✓</div>
-                  ) : (
-                    <div className="cf-perm-radio-circle" />
-                  )}
-                </div>
-
-                {/* 2. Board Administrators Only */}
-                <div
-                  className={`cf-perm-option-card ${matrixPermType === "admins" ? "selected" : ""}`}
-                  onClick={() => setMatrixPermType("admins")}
-                >
-                  <div className="cf-perm-option-info">
-                    <div className="cf-perm-option-title">
-                      <span>Board Administrators Only</span>
-                      <span>👑</span>
-                    </div>
-                    <div className="cf-perm-option-desc">
-                      Strictly locked to Board Admins{boardAdminName ? ` (${boardAdminName})` : ""}.
-                    </div>
-                  </div>
-                  {matrixPermType === "admins" ? (
-                    <div className="cf-perm-check-circle">✓</div>
-                  ) : (
-                    <div className="cf-perm-radio-circle" />
-                  )}
-                </div>
-
-                {/* 3. Assigned Card Members Only */}
-                <div
-                  className={`cf-perm-option-card ${matrixPermType === "card_members" ? "selected" : ""}`}
-                  onClick={() => setMatrixPermType("card_members")}
-                >
-                  <div className="cf-perm-option-info">
-                    <div className="cf-perm-option-title">
-                      <span>Assigned Card Members Only</span>
-                      <span>👤</span>
-                    </div>
-                    <div className="cf-perm-option-desc">
-                      Only members assigned to the specific card can edit this field.
-                    </div>
-                  </div>
-                  {matrixPermType === "card_members" ? (
-                    <div className="cf-perm-check-circle">✓</div>
-                  ) : (
-                    <div className="cf-perm-radio-circle" />
-                  )}
-                </div>
-
-                {/* 4. Specific Team Roles */}
-                <div
-                  className={`cf-perm-option-card ${matrixPermType === "roles" ? "selected" : ""}`}
-                  onClick={() => setMatrixPermType("roles")}
-                >
-                  <div className="cf-perm-option-info">
-                    <div className="cf-perm-option-title">
-                      <span>Specific Team Roles</span>
-                      <span>🛡️</span>
-                    </div>
-                    <div className="cf-perm-option-desc">
-                      Limit editing to particular roles (e.g. Finance, Tech Lead, QA).
-                    </div>
-                  </div>
-                  {matrixPermType === "roles" ? (
-                    <div className="cf-perm-check-circle">✓</div>
-                  ) : (
-                    <div className="cf-perm-radio-circle" />
-                  )}
-                </div>
-                {matrixPermType === "roles" && (
-                  <div className="cf-perm-subselect">
-                    <div className="cf-perm-subselect-label">Select Allowed Roles:</div>
-                    <div className="cf-perm-chips-grid">
-                      {availableRoles.map((role) => {
-                        const isSelected = matrixRoles.includes(role);
-                        return (
-                          <button
-                            key={role}
-                            type="button"
-                            className={`cf-perm-chip ${isSelected ? "active" : ""}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setMatrixRoles((prev) =>
-                                isSelected ? prev.filter((r) => r !== role) : [...prev, role]
-                              );
-                            }}
-                          >
-                            <span>{isSelected ? "✓" : "+"}</span>
-                            <span>{role}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* 5. Specific Individual Users */}
-                <div
-                  className={`cf-perm-option-card ${matrixPermType === "users" ? "selected" : ""}`}
-                  onClick={() => setMatrixPermType("users")}
-                >
-                  <div className="cf-perm-option-info">
-                    <div className="cf-perm-option-title">
-                      <span>Specific Individual Users</span>
-                      <span>👥</span>
-                    </div>
-                    <div className="cf-perm-option-desc">
-                      Select specific individuals with editing privileges.
-                    </div>
-                  </div>
-                  {matrixPermType === "users" ? (
-                    <div className="cf-perm-check-circle">✓</div>
-                  ) : (
-                    <div className="cf-perm-radio-circle" />
-                  )}
-                </div>
-                {matrixPermType === "users" && (
-                  <div className="cf-perm-subselect">
-                    <div className="cf-perm-subselect-label">Select Authorized Users:</div>
-                    <div className="cf-perm-chips-grid">
-                      {availableUsers.map((user) => {
-                        const isSelected = matrixUsers.includes(user);
-                        return (
-                          <button
-                            key={user}
-                            type="button"
-                            className={`cf-perm-chip ${isSelected ? "active" : ""}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setMatrixUsers((prev) =>
-                                isSelected ? prev.filter((u) => u !== user) : [...prev, user]
-                              );
-                            }}
-                          >
-                            <span>{isSelected ? "✓" : "+"}</span>
-                            <span>{user}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right Column: LIVE ACCESS SIMULATOR */}
-            <div className="cf-perm-col-right">
-              <div className="cf-simulator-card">
-                <div className="cf-simulator-topbar">
-                  <div className="cf-simulator-left-label">
-                    <EyeIcon width={14} height={14} style={{ color: "#579DFF" }} />
-                    <span style={{ fontWeight: 700, fontSize: 11.5, letterSpacing: "0.6px", textTransform: "uppercase" }}>
-                      LIVE ACCESS SIMULATOR
-                    </span>
-                  </div>
-                  <div className="cf-simulator-right-hint">
-                    Preview who gets access
-                  </div>
-                </div>
-
-                <div className="cf-simulator-list">
-                  {effectiveDisplayMembers.map((member) => {
-                    const badge = computeMemberAccessBadge(
-                      member,
-                      matrixPermType,
-                      matrixRoles,
-                      matrixUsers
-                    );
-                    return (
-                      <div key={member.id} className="cf-simulator-row">
-                        <div className="cf-simulator-user-left">
-                          {member.avatar ? (
-                            <img
-                              src={member.avatar}
-                              alt={member.name}
-                              className="cf-simulator-avatar"
-                            />
-                          ) : (
-                            <div
-                              className="cf-simulator-avatar"
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                background: "#0C66E4",
-                                color: "#FFFFFF",
-                                fontSize: 11,
-                                fontWeight: 700,
-                                flexShrink: 0,
-                                borderRadius: "50%",
-                              }}
-                            >
-                              {member.name.charAt(0)}
-                            </div>
-                          )}
-                          <div className="cf-simulator-user-info">
-                            <span className="cf-simulator-name">{member.name}</span>
-                            <span className="cf-simulator-role">{member.role}</span>
-                          </div>
-                        </div>
-
-                        <span className={`cf-access-badge ${badge.className}`}>
-                          {badge.label}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Bottom Footer Bar */}
       <div className="cf-footer-bar">
-        {mainTab === "matrix" ? (
-          <div style={{ marginLeft: "auto" }}>
+        <div className="cf-simulation-box">
+          <span>Simulating as:</span>
+          <div className="cf-custom-select-wrapper" ref={roleDropdownRef}>
             <button
               type="button"
-              className="cf-btn-done"
-              onClick={handleClose}
+              className="cf-custom-select-trigger"
+              onClick={() => setRoleMenuOpen((prev) => !prev)}
             >
-              Done
+              <span>{simulatedRole}</span>
+              <span
+                className="cf-custom-select-chevron"
+                style={{ transform: roleMenuOpen ? "rotate(180deg)" : "none" }}
+              >
+                ▾
+              </span>
             </button>
-          </div>
-        ) : (
-          <>
-            <div className="cf-simulation-box">
-              <span>Simulating as:</span>
-              <div className="cf-custom-select-wrapper" ref={roleDropdownRef}>
-                <button
-                  type="button"
-                  className="cf-custom-select-trigger"
-                  onClick={() => setRoleMenuOpen((prev) => !prev)}
-                >
-                  <span>{simulatedRole}</span>
-                  <span
-                    className="cf-custom-select-chevron"
-                    style={{ transform: roleMenuOpen ? "rotate(180deg)" : "none" }}
-                  >
-                    ▾
-                  </span>
-                </button>
 
-                {roleMenuOpen && (
-                  <div className="cf-custom-select-menu">
-                    {boardMembers.map((mem) => {
-                      const label = `${mem.name} (${mem.role})`;
-                      const isSelected = label === simulatedRole;
-                      return (
-                        <button
-                          key={mem.id}
-                          type="button"
-                          className={`cf-custom-select-item ${isSelected ? "selected" : ""}`}
-                          onClick={() => {
-                            setSimulatedRole(label);
-                            try {
-                              localStorage.setItem("cf_simulated_role", label);
-                              localStorage.setItem("cf_simulated_member_id", mem.id);
-                            } catch {}
-                            setRoleMenuOpen(false);
-                          }}
-                        >
-                          <span className="cf-custom-select-item-text">{label}</span>
-                          {isSelected && <span className="cf-custom-select-item-check">✓</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+            {roleMenuOpen && (
+              <div className="cf-custom-select-menu">
+                {boardMembers.map((mem) => {
+                  const label = `${mem.name} (${mem.role})`;
+                  const isSelected = label === simulatedRole;
+                  return (
+                    <button
+                      key={mem.id}
+                      type="button"
+                      className={`cf-custom-select-item ${isSelected ? "selected" : ""}`}
+                      onClick={() => {
+                        setSimulatedRole(label);
+                        try {
+                          localStorage.setItem("cf_simulated_role", label);
+                          localStorage.setItem("cf_simulated_member_id", mem.id);
+                        } catch {}
+                        setRoleMenuOpen(false);
+                      }}
+                    >
+                      <span className="cf-custom-select-item-text">{label}</span>
+                      {isSelected && <span className="cf-custom-select-item-check">✓</span>}
+                    </button>
+                  );
+                })}
               </div>
-            </div>
+            )}
+          </div>
+        </div>
 
-            <button
-              type="button"
-              className="cf-btn-done"
-              onClick={handleClose}
-            >
-              Done
-            </button>
-          </>
-        )}
+        <button
+          type="button"
+          className="cf-btn-done"
+          onClick={handleClose}
+        >
+          Done
+        </button>
       </div>
 
       {/* Toast Notification */}
