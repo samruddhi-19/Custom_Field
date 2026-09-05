@@ -1,8 +1,8 @@
-/* ─── Trello Native Card Back Section Styles ─── */
+/* ─── Trello Native Custom Fields - Clean & Professional Styling ─── */
 
 .cf-cardback-root {
-  background: #181C20;
-  border: 1px solid #282E33;
+  background: #22272B;
+  border: 1px solid #38414A;
   border-radius: 8px;
   color: #DEE4EA;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
@@ -14,8 +14,10 @@
 .cf-cardback-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 20px;
+  gap: 16px 18px;
   align-items: start;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 440px) {
@@ -29,15 +31,17 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* Header Row */
+/* Professional Label Header */
 .cf-cardback-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2px;
-  gap: 6px;
+  margin-bottom: 6px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -55,135 +59,72 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  opacity: 0.85;
 }
 
 .cf-cardback-title {
-  font-size: 13.5px;
+  font-size: 11.5px;
   font-weight: 700;
-  color: #DEE4EA;
+  color: #9FADBC;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  cursor: default;
+  transition: color 0.15s ease;
 }
 
-.cf-badge-cardfront {
-  font-size: 9.5px;
-  font-weight: 600;
-  color: #4BCE97;
-  background: rgba(75, 206, 151, 0.12);
-  border: 1px solid rgba(75, 206, 151, 0.35);
-  border-radius: 3px;
-  padding: 1px 5px;
-  line-height: 1.2;
-  white-space: nowrap;
+.cf-cardback-item:hover .cf-cardback-title {
+  color: #DEE4EA;
+}
+
+.cf-cardback-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   flex-shrink: 0;
 }
 
-.cf-badge-formula {
-  font-size: 9.5px;
+.cf-tag-formula {
+  font-size: 10px;
   font-weight: 700;
   color: #C084FC;
   background: rgba(192, 132, 252, 0.15);
   border: 1px solid rgba(192, 132, 252, 0.35);
   border-radius: 3px;
-  padding: 1px 5px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  white-space: nowrap;
-  flex-shrink: 0;
+  padding: 1px 4px;
+  line-height: 1.2;
+}
+
+.cf-tag-locked {
+  color: #85B8FF;
+  display: flex;
+  align-items: center;
+  opacity: 0.85;
 }
 
 .cf-btn-inspect {
   background: none;
   border: none;
-  color: #C084FC;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 0;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 0;
-  flex-shrink: 0;
-  white-space: nowrap;
-  transition: opacity 0.15s ease;
+  line-height: 1;
 }
 
-.cf-btn-inspect:hover {
-  opacity: 0.85;
-  text-decoration: underline;
-}
-
-.cf-cardback-status-editable {
-  color: #4BCE97;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-.cf-cardback-status-locked {
-  color: #85B8FF;
-  font-size: 10.5px;
-  font-weight: 600;
-  background: rgba(133, 184, 255, 0.1);
-  border: 1px solid rgba(133, 184, 255, 0.25);
-  border-radius: 3px;
-  padding: 1px 5px;
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-/* Description / Help text */
-.cf-cardback-desc {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11.5px;
-  color: #9FADBC;
-  margin-bottom: 7px;
-  min-width: 0;
-  line-height: 1.35;
-}
-
-.cf-cardback-desc-icon {
-  flex-shrink: 0;
-  color: #738496;
-  display: flex;
-  align-items: center;
-}
-
-.cf-cardback-desc-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-}
-
-.cf-formula-subtitle {
-  font-size: 11.5px;
-  color: #9FADBC;
-  margin-bottom: 7px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* 1. Dropdown */
+/* 1. Dropdown Select */
 .cf-select-wrap {
   position: relative;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .cf-cardback-select {
   width: 100%;
-  height: 34px;
-  padding: 6px 28px 6px 10px;
+  height: 36px;
+  padding: 0 30px 0 10px;
   background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
@@ -225,41 +166,17 @@
   font-size: 11px;
 }
 
-.cf-selected-chip-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 5px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #DEE4EA;
-}
-
-.cf-chip-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-/* 2. Number with Stepper */
-.cf-number-stepper-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-}
-
+/* 2. Number Input Box with Integrated Micro-Steppers */
 .cf-number-input-box {
-  flex: 1;
   display: flex;
   align-items: center;
   background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
-  padding: 0 10px;
-  height: 34px;
+  padding: 0 6px 0 10px;
+  height: 36px;
   box-sizing: border-box;
+  width: 100%;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
@@ -277,7 +194,7 @@
 .cf-number-prefix,
 .cf-number-suffix {
   color: #9FADBC;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -288,6 +205,7 @@
 
 .cf-number-suffix {
   margin-left: 4px;
+  margin-right: 6px;
 }
 
 .cf-number-native-input {
@@ -300,6 +218,7 @@
   font-weight: 600;
   padding: 0 2px;
   min-width: 0;
+  width: 100%;
   font-family: inherit;
 }
 
@@ -317,70 +236,70 @@
   cursor: not-allowed;
 }
 
-.cf-stepper-btns {
+.cf-mini-steppers {
   display: flex;
-  gap: 4px;
+  flex-direction: column;
+  height: 26px;
+  width: 18px;
   flex-shrink: 0;
 }
 
-.cf-btn-stepper {
-  width: 30px;
-  height: 34px;
-  border-radius: 4px;
-  border: 1px solid #38414A;
-  background: #1D2125;
-  color: #DEE4EA;
-  font-size: 14px;
-  font-weight: 600;
+.cf-btn-mini-step {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #9FADBC;
+  font-size: 8px;
+  cursor: pointer;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-  padding: 0;
+  transition: color 0.15s ease;
 }
 
-.cf-btn-stepper:hover:not(:disabled) {
-  background: #282E33;
-  border-color: #579DFF;
-  color: #FFFFFF;
+.cf-btn-mini-step:hover:not(:disabled) {
+  color: #579DFF;
 }
 
-.cf-btn-stepper:disabled {
-  opacity: 0.4;
+.cf-btn-mini-step:disabled {
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
-/* 3. Formula with Highlighted Box */
+/* 3. Formula Box */
 .cf-formula-box {
-  background: rgba(155, 138, 255, 0.08);
-  border: 1.5px solid rgba(155, 138, 255, 0.35);
-  border-radius: 6px;
-  height: 42px;
-  padding: 0 14px;
+  background: #1D2125;
+  border: 1px solid rgba(192, 132, 252, 0.4);
+  border-radius: 4px;
+  height: 36px;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
+  width: 100%;
 }
 
 .cf-formula-val {
-  font-size: 17px;
+  font-size: 14.5px;
   font-weight: 700;
   color: #FFFFFF;
-  letter-spacing: -0.2px;
 }
 
 .cf-formula-tag {
   color: #C084FC;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
+  background: rgba(192, 132, 252, 0.12);
+  padding: 2px 6px;
+  border-radius: 3px;
 }
 
 .cf-formula-inspect-panel {
-  margin-top: 5px;
-  padding: 7px 10px;
-  background: rgba(155, 138, 255, 0.12);
+  margin-top: 6px;
+  padding: 8px 10px;
+  background: rgba(155, 138, 255, 0.1);
   border: 1px dashed rgba(155, 138, 255, 0.35);
   border-radius: 4px;
   font-size: 11px;
@@ -394,18 +313,13 @@
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .cf-datetime-col {
   display: flex;
   flex-direction: column;
-}
-
-.cf-datetime-sublabel {
-  font-size: 11px;
-  color: #9FADBC;
-  margin-bottom: 2px;
-  font-weight: 500;
+  min-width: 0;
 }
 
 .cf-datetime-input-wrap {
@@ -415,8 +329,9 @@
   border: 1px solid #38414A;
   border-radius: 4px;
   padding: 0 8px;
-  height: 34px;
+  height: 36px;
   box-sizing: border-box;
+  width: 100%;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
@@ -441,6 +356,7 @@
   font-weight: 500;
   width: 100%;
   font-family: inherit;
+  min-width: 0;
 }
 
 .cf-datetime-native-input::-webkit-calendar-picker-indicator {
@@ -448,33 +364,35 @@
   cursor: pointer;
 }
 
-/* 5. Yes / No Toggle */
+/* 5. Yes / No QA Toggle */
 .cf-yesno-toggle-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .cf-btn-yesno {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 10px;
+  gap: 5px;
+  height: 36px;
+  padding: 0 8px;
   border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
   box-sizing: border-box;
+  white-space: nowrap;
 }
 
 .cf-btn-yesno.active {
   background: #1C2B41;
   border: 1.5px solid #579DFF;
-  color: #FFFFFF;
+  color: #579DFF;
   box-shadow: 0 0 6px rgba(87, 157, 255, 0.25);
 }
 
@@ -504,6 +422,8 @@
   border: 1px solid #38414A;
   border-radius: 4px;
   padding: 8px 10px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .cf-checklist-item {
@@ -543,11 +463,11 @@
 /* 7. Text Input & Textarea */
 .cf-cardback-input-text {
   width: 100%;
-  height: 34px;
+  height: 36px;
   background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
-  padding: 6px 10px;
+  padding: 0 10px;
   color: #DEE4EA;
   font-size: 13px;
   font-family: inherit;
@@ -578,7 +498,7 @@
   background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
-  padding: 6px 10px;
+  padding: 8px 10px;
   color: #DEE4EA;
   font-size: 12.5px;
   font-family: inherit;
@@ -606,36 +526,60 @@
   background: #161A1D;
 }
 
-/* Section Footer Links */
+/* Footer Actions */
 .cf-cardback-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 16px;
+  margin-top: 18px;
   padding-top: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.cf-btn-configure-fields {
-  background: none;
-  border: none;
+.cf-btn-load-standard {
+  background: rgba(87, 157, 255, 0.12);
+  border: 1px solid rgba(87, 157, 255, 0.35);
   color: #85B8FF;
+  padding: 6px 12px;
+  border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.cf-btn-load-standard:hover {
+  background: rgba(87, 157, 255, 0.22);
+  color: #FFFFFF;
+}
+
+.cf-btn-configure-fields {
+  background: #282E33;
+  border: 1px solid #38414A;
+  color: #DEE4EA;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 12px;
   border-radius: 4px;
-  transition: color 0.15s ease, background 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
 }
 
 .cf-btn-configure-fields:hover {
-  background: rgba(87, 157, 255, 0.12);
+  background: #323940;
+  border-color: #579DFF;
   color: #579DFF;
 }
 
 /* Empty state matching Trello Card Cover structure */
 .cf-cardback-empty-box {
-  background: #181C20;
+  background: #22272B;
   border: 1px dashed #454F59;
   border-radius: 8px;
   padding: 16px 20px;

@@ -264,6 +264,21 @@ export default function CardFieldsPopup({ t }) {
     setSchema(INITIAL_FIELDS);
     try {
       await saveBoardSchema(t, INITIAL_FIELDS);
+      const currentVals = await getCardFieldValues(t);
+      if (!currentVals || Object.keys(currentVals).length === 0) {
+        const starterVals = {
+          fld_priority: "opt_high",
+          fld_points: 13,
+          fld_hours: 32,
+          fld_rate: 140,
+          fld_target_date: "2026-09-18 14:00",
+          fld_qa: true,
+          fld_security: { chk_sec_1: true },
+          fld_release_note: "Production release with custom fields tracking.",
+        };
+        setValues(starterVals);
+        await saveCardFieldValues(t, starterVals);
+      }
     } catch (e) {
       console.warn("Failed saving standard schema to board:", e);
     }
@@ -367,51 +382,31 @@ export default function CardFieldsPopup({ t }) {
               <div className="cf-cardback-header">
                 <div className="cf-cardback-header-left">
                   <div className="cf-cardback-icon">{renderFieldTypeIcon(field)}</div>
-                  <span className="cf-cardback-title" title={field.name}>{field.name}</span>
-
-                  {field.showBadgeFront !== false && (
-                    <span className="cf-badge-cardfront">Card Front</span>
-                  )}
-
-                  {isFormula && (
-                    <>
-                      <span className="cf-badge-formula">FORMULA</span>
-                      <button
-                        type="button"
-                        className="cf-btn-inspect"
-                        onClick={() =>
-                          setInspectFormulaId((prev) => (prev === field.id ? null : field.id))
-                        }
-                        title="Inspect formula calculation"
-                      >
-                        <SparkleIcon width={11} height={11} />
-                        <span>Inspect</span>
-                      </button>
-                    </>
-                  )}
+                  <span className="cf-cardback-title" title={field.name}>
+                    {field.name}
+                  </span>
                 </div>
 
-                {/* Right access indicator */}
-                {!isFormula && (
-                  canEdit ? (
-                    <span className="cf-cardback-status-editable">Editable</span>
-                  ) : (
-                    <span className="cf-cardback-status-locked" title={access.label}>
-                      <LockIcon width={10} height={10} />
-                      <span>{access.label.replace("🔒 ", "").replace("✓ ", "")}</span>
-                    </span>
-                  )
-                )}
-              </div>
+                <div className="cf-cardback-meta">
+                  {isFormula && (
+                    <button
+                      type="button"
+                      className="cf-btn-inspect"
+                      onClick={() =>
+                        setInspectFormulaId((prev) => (prev === field.id ? null : field.id))
+                      }
+                      title="Inspect formula calculation"
+                    >
+                      <span className="cf-tag-formula">fx</span>
+                    </button>
+                  )}
 
-              {/* Sub-header / Description row */}
-              <div className="cf-cardback-desc" title={descText}>
-                <span className="cf-cardback-desc-icon">
-                  <InfoIcon width={12} height={12} />
-                </span>
-                <span className="cf-cardback-desc-text">
-                  {descText}
-                </span>
+                  {!canEdit && (
+                    <span className="cf-tag-locked" title={access.label}>
+                      <LockIcon width={11} height={11} />
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Control Widgets */}
@@ -420,43 +415,29 @@ export default function CardFieldsPopup({ t }) {
                 (() => {
                   const opts = field.options || [];
                   const selectedOpt = opts.find((o) => o.id === val || o.text === val);
-                  const optColorHex = selectedOpt
-                    ? selectedOpt.color?.startsWith("#")
-                      ? selectedOpt.color
-                      : COLOR_MAP[selectedOpt.color] || "#FF5630"
-                    : "#FF5630";
 
                   return (
-                    <div>
-                      <div className="cf-select-wrap">
-                        <select
-                          disabled={!canEdit}
-                          className="cf-cardback-select"
-                          value={selectedOpt ? selectedOpt.id : val || ""}
-                          onChange={(e) => handleChange(field.id, e.target.value)}
-                        >
-                          <option value="">Select option...</option>
-                          {opts.map((opt) => (
-                            <option key={opt.id} value={opt.id}>
-                              {opt.text}
-                            </option>
-                          ))}
-                        </select>
-                        <span className="cf-select-chevron">▾</span>
-                      </div>
-
-                      {selectedOpt && (
-                        <div className="cf-selected-chip-row">
-                          <span className="cf-chip-dot" style={{ background: optColorHex }} />
-                          <span>{selectedOpt.text}</span>
-                        </div>
-                      )}
+                    <div className="cf-select-wrap">
+                      <select
+                        disabled={!canEdit}
+                        className="cf-cardback-select"
+                        value={selectedOpt ? selectedOpt.id : val || ""}
+                        onChange={(e) => handleChange(field.id, e.target.value)}
+                      >
+                        <option value="">Select option...</option>
+                        {opts.map((opt) => (
+                          <option key={opt.id} value={opt.id}>
+                            {opt.text}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="cf-select-chevron">▾</span>
                     </div>
                   );
                 })()
               )}
 
-              {/* 2. Number with Steppers */}
+              {/* 2. Number with Built-in Micro Steppers */}
               {field.type === "number" && (
                 (() => {
                   const numVal = val !== undefined && val !== null && val !== "" ? Number(val) : "";
@@ -473,42 +454,39 @@ export default function CardFieldsPopup({ t }) {
                   }
 
                   return (
-                    <div className="cf-number-stepper-row">
-                      <div className="cf-number-input-box">
-                        {field.prefix && <span className="cf-number-prefix">{field.prefix}</span>}
-                        <input
-                          type="number"
-                          disabled={!canEdit}
-                          className="cf-number-native-input"
-                          value={val !== undefined && val !== null ? val : ""}
-                          placeholder="0"
-                          step={field.decimalPlaces ? `0.${"0".repeat(Math.max(0, field.decimalPlaces - 1))}1` : "any"}
-                          min={field.minValue !== undefined ? field.minValue : undefined}
-                          onChange={(e) =>
-                            handleChange(field.id, e.target.value === "" ? null : Number(e.target.value))
-                          }
-                        />
-                        {field.suffix && <span className="cf-number-suffix">{field.suffix}</span>}
-                      </div>
-
-                      <div className="cf-stepper-btns">
+                    <div className="cf-number-input-box">
+                      {field.prefix && <span className="cf-number-prefix">{field.prefix}</span>}
+                      <input
+                        type="number"
+                        disabled={!canEdit}
+                        className="cf-number-native-input"
+                        value={val !== undefined && val !== null ? val : ""}
+                        placeholder="0"
+                        step={field.decimalPlaces ? `0.${"0".repeat(Math.max(0, field.decimalPlaces - 1))}1` : "any"}
+                        min={field.minValue !== undefined ? field.minValue : undefined}
+                        onChange={(e) =>
+                          handleChange(field.id, e.target.value === "" ? null : Number(e.target.value))
+                        }
+                      />
+                      {field.suffix && <span className="cf-number-suffix">{field.suffix}</span>}
+                      <div className="cf-mini-steppers">
                         <button
                           type="button"
                           disabled={!canEdit}
-                          className="cf-btn-stepper"
-                          onClick={() => handleStep(-step)}
-                          title="Decrement"
+                          className="cf-btn-mini-step"
+                          onClick={() => handleStep(step)}
+                          title="Increment"
                         >
-                          −
+                          ▲
                         </button>
                         <button
                           type="button"
                           disabled={!canEdit}
-                          className="cf-btn-stepper"
-                          onClick={() => handleStep(step)}
-                          title="Increment"
+                          className="cf-btn-mini-step"
+                          onClick={() => handleStep(-step)}
+                          title="Decrement"
                         >
-                          +
+                          ▼
                         </button>
                       </div>
                     </div>
@@ -738,7 +716,7 @@ export default function CardFieldsPopup({ t }) {
         <button
           type="button"
           onClick={handleLoadStandardFields}
-          className="cf-btn-configure-fields"
+          className="cf-btn-load-standard"
           title="Reset board fields to the 9 standard fields (Priority, Points, Hours, Rate, Budget, QA)"
         >
           ⚡ Load Standard Fields
