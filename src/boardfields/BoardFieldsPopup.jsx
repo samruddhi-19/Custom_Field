@@ -353,6 +353,7 @@ export default function BoardFieldsPopup({ t }) {
   const [prefix, setPrefix] = useState("");
   const [suffix, setSuffix] = useState("");
   const [minValue, setMinValue] = useState("0");
+  const [maxValue, setMaxValue] = useState("");
   const [decimalPlaces, setDecimalPlaces] = useState("0");
   const [dateTimeMode, setDateTimeMode] = useState("datetime");
   const [formula, setFormula] = useState("");
@@ -463,7 +464,8 @@ export default function BoardFieldsPopup({ t }) {
     setOptions(selectedType === "dropdown" ? [...DEFAULT_DROPDOWN_OPTIONS] : []);
     setPrefix("");
     setSuffix("");
-    setMinValue("0");
+    setMinValue("");
+    setMaxValue("");
     setDecimalPlaces("0");
     setDateTimeMode("datetime");
     setFormula("");
@@ -496,7 +498,8 @@ export default function BoardFieldsPopup({ t }) {
     setOptions(field.options ? JSON.parse(JSON.stringify(field.options)) : []);
     setPrefix(field.prefix || "");
     setSuffix(field.suffix || "");
-    setMinValue(field.minValue !== undefined && field.minValue !== null ? String(field.minValue) : "0");
+    setMinValue(field.minValue !== undefined && field.minValue !== null ? String(field.minValue) : "");
+    setMaxValue(field.maxValue !== undefined && field.maxValue !== null ? String(field.maxValue) : "");
     setDecimalPlaces(field.decimalPlaces !== undefined && field.decimalPlaces !== null ? String(field.decimalPlaces) : "0");
     setDateTimeMode(field.dateTimeMode || "datetime");
     setFormula(field.formula || "");
@@ -615,10 +618,59 @@ export default function BoardFieldsPopup({ t }) {
       return;
     }
 
-    if (type === "dropdown" && options.length === 0) {
-      setFormError("Please provide at least one dropdown option.");
+    if (type === "dropdown") {
+      if (options.length === 0) {
+        setFormError("Please provide at least one dropdown option.");
+        setStepTab("config");
+        return;
+      }
+      if (options.some((o) => !o.text || !o.text.trim())) {
+        setFormError("Dropdown options cannot have empty text.");
+        setStepTab("config");
+        return;
+      }
+    }
+
+    if (type === "number") {
+      if (
+        minValue !== "" &&
+        maxValue !== "" &&
+        !isNaN(Number(minValue)) &&
+        !isNaN(Number(maxValue)) &&
+        Number(minValue) > Number(maxValue)
+      ) {
+        setFormError("Min Value cannot be greater than Max Value.");
+        setStepTab("config");
+        return;
+      }
+    }
+
+    if (type === "formula" && !formula.trim()) {
+      setFormError("Please enter a formula expression.");
       setStepTab("config");
       return;
+    }
+
+    if (type === "conditional") {
+      if (!conditionalField) {
+        setFormError("Please select a field to base the conditional rule on.");
+        setStepTab("config");
+        return;
+      }
+      if (conditionalOperator !== "not_empty" && !conditionalValue.trim()) {
+        setFormError("Please enter a target value for the conditional rule.");
+        setStepTab("config");
+        return;
+      }
+    }
+
+    if (type === "checkbox") {
+      const validItems = checklistItems.filter((it) => it.text && it.text.trim());
+      if (validItems.length === 0) {
+        setFormError("Please add at least one checklist item with text.");
+        setStepTab("config");
+        return;
+      }
     }
 
     setFormError("");
@@ -626,7 +678,8 @@ export default function BoardFieldsPopup({ t }) {
     const typeConfig = type === "number" ? {
       prefix: prefix.trim() || undefined,
       suffix: suffix.trim() || undefined,
-      minValue: minValue !== "" ? Number(minValue) : undefined,
+      minValue: minValue !== "" && !isNaN(Number(minValue)) ? Number(minValue) : undefined,
+      maxValue: maxValue !== "" && !isNaN(Number(maxValue)) ? Number(maxValue) : undefined,
       decimalPlaces: decimalPlaces !== "" ? Number(decimalPlaces) : 0,
     } : type === "date" ? {
       dateTimeMode: dateTimeMode || "datetime",
@@ -1003,13 +1056,24 @@ export default function BoardFieldsPopup({ t }) {
                       </div>
 
                       <div className="cf-form-group">
-                        <label className="cf-form-label">Min Value</label>
+                        <label className="cf-form-label">Min Value (Lowest allowed)</label>
                         <input
                           type="number"
                           className="cf-form-input"
-                          placeholder="0"
+                          placeholder="e.g. 0"
                           value={minValue}
                           onChange={(e) => setMinValue(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="cf-form-group">
+                        <label className="cf-form-label">Max Value (Highest limit)</label>
+                        <input
+                          type="number"
+                          className="cf-form-input"
+                          placeholder="e.g. 100"
+                          value={maxValue}
+                          onChange={(e) => setMaxValue(e.target.value)}
                         />
                       </div>
 

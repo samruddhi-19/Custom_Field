@@ -96,29 +96,39 @@ function getFormulaBreakdown(formula, schema, values) {
 function checkConditionalRule(field, schema, values) {
   if (field.type !== "conditional" || !field.conditionalField) return true;
   const targetField = schema.find((f) => f.name === field.conditionalField || f.id === field.conditionalField);
-  const actualVal = targetField ? values[targetField.id] : values[field.conditionalField];
+  let actualVal = targetField ? values[targetField.id] : values[field.conditionalField];
   const targetVal = field.conditionalValue;
   const op = field.conditionalOperator || "equals";
 
   if (op === "not_empty") {
     return actualVal !== undefined && actualVal !== null && String(actualVal).trim() !== "";
   }
-  if (op === "equals") {
-    return String(actualVal || "").toLowerCase() === String(targetVal || "").toLowerCase();
+
+  // Resolve alternate representations for dropdown option text and yes/no labels
+  let altVal = null;
+  if (targetField && targetField.type === "dropdown" && Array.isArray(targetField.options)) {
+    const opt = targetField.options.find((o) => o.id === actualVal || o.text === actualVal);
+    if (opt) altVal = opt.text;
+  } else if (targetField && targetField.type === "yesno") {
+    if (actualVal === true) altVal = targetField.yesLabel || "Yes";
+    else if (actualVal === false) altVal = targetField.noLabel || "No";
   }
-  if (op === "not_equals") {
-    return String(actualVal || "").toLowerCase() !== String(targetVal || "").toLowerCase();
-  }
-  if (op === "contains") {
-    return String(actualVal || "").toLowerCase().includes(String(targetVal || "").toLowerCase());
-  }
-  if (op === "gt") {
-    return Number(actualVal) > Number(targetVal);
-  }
-  if (op === "lt") {
-    return Number(actualVal) < Number(targetVal);
-  }
-  return true;
+
+  const testMatch = (v) => {
+    if (v === undefined || v === null) return false;
+    const strV = String(v).toLowerCase().trim();
+    const strT = String(targetVal || "").toLowerCase().trim();
+    if (op === "equals") return strV === strT;
+    if (op === "not_equals") return strV !== strT;
+    if (op === "contains") return strV.includes(strT);
+    if (op === "gt") return !isNaN(Number(v)) && !isNaN(Number(targetVal)) && Number(v) > Number(targetVal);
+    if (op === "lt") return !isNaN(Number(v)) && !isNaN(Number(targetVal)) && Number(v) < Number(targetVal);
+    return true;
+  };
+
+  if (testMatch(actualVal)) return true;
+  if (altVal !== null && testMatch(altVal)) return true;
+  return false;
 }
 
 
@@ -309,6 +319,11 @@ export default function CardFieldsPopup({ t }) {
       {/* 2-Column Grid */}
       <div className="cf-cardback-grid">
         {schema.map((field) => {
+          // Conditional Visibility Constraint: Hide field if trigger rule is not met
+          if (!checkConditionalRule(field, schema, values)) {
+            return null;
+          }
+
           const val = values[field.id];
 
           // Compute field permission for active member
@@ -387,58 +402,123 @@ export default function CardFieldsPopup({ t }) {
                 })()
               )}
 
-              {/* 2. Number with Built-in Micro Steppers */}
+              {/* 2. Number with Built-in Micro Steppers & Min/Max Enforcement */}
               {field.type === "number" && (
                 (() => {
                   const numVal = val !== undefined && val !== null && val !== "" ? Number(val) : "";
                   const step = field.decimalPlaces ? Math.pow(10, -Number(field.decimalPlaces)) : 1;
+                  const hasMin = field.minValue !== undefined && field.minValue !== null && field.minValue !== "";
+                  const hasMax = field.maxValue !== undefined && field.maxValue !== null && field.maxValue !== "";
+                  const minLimit = hasMin ? Number(field.minValue) : null;
+                  const maxLimit = hasMax ? Number(field.maxValue) : null;
+
+                  function clamp(n) {
+                    let result = n;
+                    if (minLimit !== null && result < minLimit) result = minLimit;
+                    if (maxLimit !== null && result > maxLimit) result = maxLimit;
+                    return result;
+                  }
 
                   function handleStep(delta) {
                     if (!canEdit) return;
-                    const cur = typeof numVal === "number" && !isNaN(numVal) ? numVal : (field.minValue !== undefined ? Number(field.minValue) : 0);
-                    let next = Math.round((cur + delta) * 100) / 100;
-                    if (field.minValue !== undefined && next < Number(field.minValue)) {
-                      next = Number(field.minValue);
+                    const cur = typeof numVal === "number" && !isNaN(numVal) ? numVal : (minLimit !== null ? minLimit : 0);
+                    let next = cur + delta;
+                    if (field.decimalPlaces !== undefined && field.decimalPlaces !== null && field.decimalPlaces !== "") {
+                      const dec = Math.max(0, Math.min(6, Number(field.decimalPlaces)));
+                      next = Number(next.toFixed(dec));
+                    } else {
+                      next = Math.round(next * 100) / 100;
                     }
+                    next = clamp(next);
                     handleChange(field.id, next);
                   }
 
+                  function handleNumberChange(raw) {
+                    if (raw === "") {
+                      handleChange(field.id, null);
+                      return;
+                    }
+                    const n = Number(raw);
+                    if (isNaN(n)) return;
+                    if (maxLimit !== null && n > maxLimit) {
+                      handleChange(field.id, maxLimit);
+                      return;
+                    }
+                    handleChange(field.id, n);
+                  }
+
+                  function handleNumberBlur(e) {
+                    const raw = e.target.value;
+                    if (raw === "") return;
+                    const n = Number(raw);
+                    if (isNaN(n)) return;
+                    let clamped = clamp(n);
+                    if (field.decimalPlaces !== undefined && field.decimalPlaces !== null && field.decimalPlaces !== "") {
+                      const dec = Math.max(0, Math.min(6, Number(field.decimalPlaces)));
+                      clamped = Number(clamped.toFixed(dec));
+                    }
+                    handleChange(field.id, clamped);
+                  }
+
+                  const isBelowMin = numVal !== "" && minLimit !== null && numVal < minLimit;
+                  const isAboveMax = numVal !== "" && maxLimit !== null && numVal > maxLimit;
+
                   return (
-                    <div className="cf-number-input-box">
-                      {field.prefix && <span className="cf-number-prefix">{field.prefix}</span>}
-                      <input
-                        type="number"
-                        disabled={!canEdit}
-                        className="cf-number-native-input"
-                        value={val !== undefined && val !== null ? val : ""}
-                        placeholder="0"
-                        step={field.decimalPlaces ? `0.${"0".repeat(Math.max(0, field.decimalPlaces - 1))}1` : "any"}
-                        min={field.minValue !== undefined ? field.minValue : undefined}
-                        onChange={(e) =>
-                          handleChange(field.id, e.target.value === "" ? null : Number(e.target.value))
-                        }
-                      />
-                      {field.suffix && <span className="cf-number-suffix">{field.suffix}</span>}
-                      <div className="cf-mini-steppers">
-                        <button
-                          type="button"
+                    <div>
+                      <div
+                        className="cf-number-input-box"
+                        style={{
+                          borderColor: (isBelowMin || isAboveMax) ? "#FF5630" : undefined,
+                          boxShadow: (isBelowMin || isAboveMax) ? "0 0 0 1px #FF5630" : undefined,
+                        }}
+                      >
+                        {field.prefix && <span className="cf-number-prefix">{field.prefix}</span>}
+                        <input
+                          type="number"
                           disabled={!canEdit}
-                          className="cf-btn-mini-step"
-                          onClick={() => handleStep(step)}
-                          title="Increment"
-                        >
-                          ▲
-                        </button>
-                        <button
-                          type="button"
-                          disabled={!canEdit}
-                          className="cf-btn-mini-step"
-                          onClick={() => handleStep(-step)}
-                          title="Decrement"
-                        >
-                          ▼
-                        </button>
+                          className="cf-number-native-input"
+                          value={val !== undefined && val !== null ? val : ""}
+                          placeholder={hasMin ? String(minLimit) : "0"}
+                          step={field.decimalPlaces ? `0.${"0".repeat(Math.max(0, field.decimalPlaces - 1))}1` : "any"}
+                          min={minLimit !== null ? minLimit : undefined}
+                          max={maxLimit !== null ? maxLimit : undefined}
+                          title={hasMin && hasMax ? `Range: ${minLimit} to ${maxLimit}` : hasMin ? `Min: ${minLimit}` : hasMax ? `Max: ${maxLimit}` : ""}
+                          onChange={(e) => handleNumberChange(e.target.value)}
+                          onBlur={handleNumberBlur}
+                        />
+                        {field.suffix && <span className="cf-number-suffix">{field.suffix}</span>}
+                        <div className="cf-mini-steppers">
+                          <button
+                            type="button"
+                            disabled={!canEdit}
+                            className="cf-btn-mini-step"
+                            onClick={() => handleStep(step)}
+                            title="Increment"
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            disabled={!canEdit}
+                            className="cf-btn-mini-step"
+                            onClick={() => handleStep(-step)}
+                            title="Decrement"
+                          >
+                            ▼
+                          </button>
+                        </div>
                       </div>
+
+                      {isBelowMin && (
+                        <div style={{ color: "#FF8F73", fontSize: "11px", fontWeight: 600, marginTop: "4px", display: "flex", alignItems: "center", gap: "4px" }}>
+                          ⚠️ Value must be at least {minLimit}{field.suffix ? ` ${field.suffix}` : ""}
+                        </div>
+                      )}
+                      {isAboveMax && (
+                        <div style={{ color: "#FF8F73", fontSize: "11px", fontWeight: 600, marginTop: "4px", display: "flex", alignItems: "center", gap: "4px" }}>
+                          ⚠️ Value cannot exceed {maxLimit}{field.suffix ? ` ${field.suffix}` : ""}
+                        </div>
+                      )}
                     </div>
                   );
                 })()
@@ -484,7 +564,7 @@ export default function CardFieldsPopup({ t }) {
                 })()
               )}
 
-              {/* 4. Date & Time Dual Pickers */}
+              {/* 4. Date & Time Pickers respecting dateTimeMode */}
               {field.type === "date" && (
                 (() => {
                   let datePart = "";
@@ -498,11 +578,56 @@ export default function CardFieldsPopup({ t }) {
                       const parts = val.split(" ");
                       datePart = parts[0];
                       timePart = parts.slice(1).join(" ");
+                    } else if (val.includes(":")) {
+                      timePart = val;
                     } else {
                       datePart = val;
                     }
                   }
 
+                  const mode = field.dateTimeMode || "datetime";
+
+                  // Mode: Date Only
+                  if (mode === "date") {
+                    return (
+                      <div className="cf-datetime-row">
+                        <div className="cf-datetime-col" style={{ flex: 1 }}>
+                          <span className="cf-datetime-sublabel">Date</span>
+                          <div className="cf-datetime-input-wrap">
+                            <input
+                              type="date"
+                              disabled={!canEdit}
+                              className="cf-datetime-native-input"
+                              value={datePart || ""}
+                              onChange={(e) => handleChange(field.id, e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Mode: Time Only
+                  if (mode === "time") {
+                    return (
+                      <div className="cf-datetime-row">
+                        <div className="cf-datetime-col" style={{ flex: 1 }}>
+                          <span className="cf-datetime-sublabel">Time</span>
+                          <div className="cf-datetime-input-wrap">
+                            <input
+                              type="time"
+                              disabled={!canEdit}
+                              className="cf-datetime-native-input"
+                              value={timePart || ""}
+                              onChange={(e) => handleChange(field.id, e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Mode: Both Date & Time
                   return (
                     <div className="cf-datetime-row">
                       <div className="cf-datetime-col">

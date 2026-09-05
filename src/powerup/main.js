@@ -41,7 +41,13 @@ function formatBadge(field, value) {
 
     case "number": {
       let numVal = Number(value);
-      let numStr = isNaN(numVal) ? String(value) : (field.decimalPlaces !== undefined && field.decimalPlaces !== null && field.decimalPlaces !== "" ? numVal.toFixed(Number(field.decimalPlaces)) : String(value));
+      if (field.minValue !== undefined && field.minValue !== null && field.minValue !== "" && !isNaN(Number(field.minValue))) {
+        if (numVal < Number(field.minValue)) numVal = Number(field.minValue);
+      }
+      if (field.maxValue !== undefined && field.maxValue !== null && field.maxValue !== "" && !isNaN(Number(field.maxValue))) {
+        if (numVal > Number(field.maxValue)) numVal = Number(field.maxValue);
+      }
+      let numStr = isNaN(numVal) ? String(value) : (field.decimalPlaces !== undefined && field.decimalPlaces !== null && field.decimalPlaces !== "" ? numVal.toFixed(Number(field.decimalPlaces)) : String(numVal));
       const prefix = field.prefix || "";
       const suffix = field.suffix ? ` ${field.suffix}` : "";
       return {
@@ -65,10 +71,12 @@ function formatBadge(field, value) {
     }
 
     case "date": {
-      const isPast = new Date(value) < new Date(new Date().setHours(0, 0, 0, 0));
+      const mode = field.dateTimeMode || "datetime";
+      const icon = mode === "time" ? "🕒" : "📅";
+      const isPast = mode !== "time" && new Date(value) < new Date(new Date().setHours(0, 0, 0, 0));
       return {
         title: field.name,
-        text: `📅 ${value}`,
+        text: `${icon} ${value}`,
         color: isPast ? "red" : null,
       };
     }
@@ -147,29 +155,39 @@ function formatBadge(field, value) {
 function checkConditionalRule(field, schema, values) {
   if (field.type !== "conditional" || !field.conditionalField) return true;
   const targetField = schema.find((f) => f.name === field.conditionalField || f.id === field.conditionalField);
-  const actualVal = targetField ? values[targetField.id] : values[field.conditionalField];
+  let actualVal = targetField ? values[targetField.id] : values[field.conditionalField];
   const targetVal = field.conditionalValue;
   const op = field.conditionalOperator || "equals";
 
   if (op === "not_empty") {
     return actualVal !== undefined && actualVal !== null && String(actualVal).trim() !== "";
   }
-  if (op === "equals") {
-    return String(actualVal || "").toLowerCase() === String(targetVal || "").toLowerCase();
+
+  // Resolve alternate representations for dropdown option text and yes/no labels
+  let altVal = null;
+  if (targetField && targetField.type === "dropdown" && Array.isArray(targetField.options)) {
+    const opt = targetField.options.find((o) => o.id === actualVal || o.text === actualVal);
+    if (opt) altVal = opt.text;
+  } else if (targetField && targetField.type === "yesno") {
+    if (actualVal === true) altVal = targetField.yesLabel || "Yes";
+    else if (actualVal === false) altVal = targetField.noLabel || "No";
   }
-  if (op === "not_equals") {
-    return String(actualVal || "").toLowerCase() !== String(targetVal || "").toLowerCase();
-  }
-  if (op === "contains") {
-    return String(actualVal || "").toLowerCase().includes(String(targetVal || "").toLowerCase());
-  }
-  if (op === "gt") {
-    return Number(actualVal) > Number(targetVal);
-  }
-  if (op === "lt") {
-    return Number(actualVal) < Number(targetVal);
-  }
-  return true;
+
+  const testMatch = (v) => {
+    if (v === undefined || v === null) return false;
+    const strV = String(v).toLowerCase().trim();
+    const strT = String(targetVal || "").toLowerCase().trim();
+    if (op === "equals") return strV === strT;
+    if (op === "not_equals") return strV !== strT;
+    if (op === "contains") return strV.includes(strT);
+    if (op === "gt") return !isNaN(Number(v)) && !isNaN(Number(targetVal)) && Number(v) > Number(targetVal);
+    if (op === "lt") return !isNaN(Number(v)) && !isNaN(Number(targetVal)) && Number(v) < Number(targetVal);
+    return true;
+  };
+
+  if (testMatch(actualVal)) return true;
+  if (altVal !== null && testMatch(altVal)) return true;
+  return false;
 }
 
 function evaluateFormula(formula, schema, values) {

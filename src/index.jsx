@@ -270,6 +270,43 @@ function calculateFormulaVal(field, values, schema) {
   return "$0.00";
 }
 
+function checkConditionalRule(field, schema, values) {
+  if (field.type !== "conditional" || !field.conditionalField) return true;
+  const targetField = schema.find((f) => f.name === field.conditionalField || f.id === field.conditionalField);
+  let actualVal = targetField ? values[targetField.id] : values[field.conditionalField];
+  const targetVal = field.conditionalValue;
+  const op = field.conditionalOperator || "equals";
+
+  if (op === "not_empty") {
+    return actualVal !== undefined && actualVal !== null && String(actualVal).trim() !== "";
+  }
+
+  let altVal = null;
+  if (targetField && targetField.type === "dropdown" && Array.isArray(targetField.options)) {
+    const opt = targetField.options.find((o) => o.id === actualVal || o.text === actualVal);
+    if (opt) altVal = opt.text;
+  } else if (targetField && targetField.type === "yesno") {
+    if (actualVal === true) altVal = targetField.yesLabel || "Yes";
+    else if (actualVal === false) altVal = targetField.noLabel || "No";
+  }
+
+  const testMatch = (v) => {
+    if (v === undefined || v === null) return false;
+    const strV = String(v).toLowerCase().trim();
+    const strT = String(targetVal || "").toLowerCase().trim();
+    if (op === "equals") return strV === strT;
+    if (op === "not_equals") return strV !== strT;
+    if (op === "contains") return strV.includes(strT);
+    if (op === "gt") return !isNaN(Number(v)) && !isNaN(Number(targetVal)) && Number(v) > Number(targetVal);
+    if (op === "lt") return !isNaN(Number(v)) && !isNaN(Number(targetVal)) && Number(v) < Number(targetVal);
+    return true;
+  };
+
+  if (testMatch(actualVal)) return true;
+  if (altVal !== null && testMatch(altVal)) return true;
+  return false;
+}
+
 function HostApp() {
   const [modalOpen, setModalOpen] = useState(false);
   const [schema, setSchema] = useState(() => {
@@ -383,6 +420,7 @@ function HostApp() {
   const frontFields = schema.filter((f) => f.showBadgeFront !== false);
 
   function renderFieldBadge(field, card) {
+    if (!checkConditionalRule(field, schema, card.values)) return null;
     const val = card.values[field.id];
 
     switch (field.type) {
@@ -427,7 +465,18 @@ function HostApp() {
       }
 
       case "number": {
-        const numVal = val !== undefined && val !== null ? val : 10;
+        let numVal = val !== undefined && val !== null ? Number(val) : 0;
+        if (field.minValue !== undefined && field.minValue !== null && field.minValue !== "" && !isNaN(Number(field.minValue))) {
+          if (numVal < Number(field.minValue)) numVal = Number(field.minValue);
+        }
+        if (field.maxValue !== undefined && field.maxValue !== null && field.maxValue !== "" && !isNaN(Number(field.maxValue))) {
+          if (numVal > Number(field.maxValue)) numVal = Number(field.maxValue);
+        }
+        const formatted = isNaN(numVal)
+          ? String(val || "")
+          : field.decimalPlaces !== undefined && field.decimalPlaces !== null && field.decimalPlaces !== ""
+          ? numVal.toFixed(Number(field.decimalPlaces))
+          : String(numVal);
         const suffix = field.suffix ? ` ${field.suffix}` : "";
         const prefix = field.prefix || "";
         return (
@@ -448,7 +497,7 @@ function HostApp() {
           >
             <span style={{ opacity: 0.8 }}>#</span>
             <span style={{ color: "#9FADBC", fontWeight: 500 }}>{field.name}:</span>
-            <span style={{ color: "#4BCE97" }}>{prefix}{numVal}{suffix}</span>
+            <span style={{ color: "#4BCE97" }}>{prefix}{formatted}{suffix}</span>
           </span>
         );
       }
@@ -481,6 +530,8 @@ function HostApp() {
 
       case "date": {
         const dateVal = val || "Sep 25 2:00pm";
+        const mode = field.dateTimeMode || "datetime";
+        const icon = mode === "time" ? "🕒" : "📅";
         return (
           <span
             key={field.id}
@@ -497,7 +548,7 @@ function HostApp() {
               color: "#9FADBC",
             }}
           >
-            <span>📅</span>
+            <span>{icon}</span>
             <span>{dateVal}</span>
           </span>
         );
