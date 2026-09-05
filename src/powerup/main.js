@@ -114,7 +114,7 @@ function formatBadge(field, value) {
     }
 
     case "formula": {
-      if (!value) return null;
+      if (value === undefined || value === null || value === "") return null;
       const symb = field.unitSymbol || (field.returnFormat === "currency" ? "$" : "");
       let formattedText = String(value);
       if (typeof value === "number") {
@@ -292,41 +292,12 @@ TrelloPowerUp.initialize({
         badges.push({
           text: badge.text,
           color: badge.color,
+          refresh: 10,
         });
       }
     });
 
     return badges;
   },
-
-  "card-detail-badges": async function (t) {
-    const [schema, cardValues] = await Promise.all([
-      t.get("board", "shared", "custom_fields_schema", []),
-      t.get("card", "shared", "custom_fields_values", {}),
-    ]);
-
-    if (!Array.isArray(schema) || schema.length === 0) return [];
-    const values = cardValues || {};
-
-    const detailBadges = [];
-    schema.forEach((field) => {
-      if (!checkConditionalRule(field, schema, values)) return;
-      const val = field.type === "formula" ? evaluateFormula(field.formula, schema, values) : values[field.id];
-      const badge = formatBadge(field, val);
-      detailBadges.push({
-        title: field.name,
-        text: badge ? badge.text : "Set value",
-        color: badge ? badge.color : null,
-        callback: function (t) {
-          return t.popup({
-            title: field.name,
-            url: "./cardfields.html",
-            height: 380,
-          });
-        },
-      });
-    });
-
-    return detailBadges;
-  },
 });
+
