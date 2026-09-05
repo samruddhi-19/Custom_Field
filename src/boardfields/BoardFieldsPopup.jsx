@@ -799,16 +799,6 @@ export default function BoardFieldsPopup({ t }) {
               Manage field types, calculations, card front badges, and <span className="cf-lock-inline"><LockIcon width={11} height={11} /></span> field-level edit permissions.
             </div>
           </div>
-          <div className="cf-header-actions">
-            <button type="button" className="cf-btn-header" onClick={handleExportSchema}>
-              <ExportIcon width={14} height={14} />
-              <span>Export</span>
-            </button>
-            <button type="button" className="cf-btn-header" onClick={handleImportClick}>
-              <ImportIcon width={14} height={14} />
-              <span>Import</span>
-            </button>
-          </div>
         </div>
 
         {/* Top Tabs */}
@@ -835,16 +825,6 @@ export default function BoardFieldsPopup({ t }) {
             <ShieldIcon width={14} height={14} />
             <LockIcon width={12} height={12} style={{ marginLeft: -4 }} />
             <span>Permission Matrix</span>
-          </button>
-          <button
-            type="button"
-            className="cf-top-tab"
-            onClick={() => {
-              showToast("Field Templates library coming soon!");
-            }}
-          >
-            <SparkleIcon width={14} height={14} />
-            <span>Field Templates</span>
           </button>
         </div>
 
@@ -1818,16 +1798,6 @@ export default function BoardFieldsPopup({ t }) {
             Manage field types, calculations, card front badges, and <span className="cf-lock-inline"><LockIcon width={11} height={11} /></span> field-level edit permissions.
           </div>
         </div>
-        <div className="cf-header-actions">
-          <button type="button" className="cf-btn-header" onClick={handleExportSchema}>
-            <ExportIcon width={14} height={14} />
-            <span>Export</span>
-          </button>
-          <button type="button" className="cf-btn-header" onClick={handleImportClick}>
-            <ImportIcon width={14} height={14} />
-            <span>Import</span>
-          </button>
-        </div>
       </div>
 
       {/* Top Tabs */}
@@ -1848,16 +1818,6 @@ export default function BoardFieldsPopup({ t }) {
           <ShieldIcon width={14} height={14} />
           <LockIcon width={12} height={12} style={{ marginLeft: -4 }} />
           <span>Permission Matrix</span>
-        </button>
-        <button
-          type="button"
-          className="cf-top-tab"
-          onClick={() => {
-            showToast("Field Templates library coming soon!");
-          }}
-        >
-          <SparkleIcon width={14} height={14} />
-          <span>Field Templates</span>
         </button>
       </div>
 
