@@ -674,3 +674,33 @@
   border-color: #579DFF;
   color: #579DFF;
 }
+
+.cf-cardback-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #2C333A;
+}
+
+.cf-btn-configure-fields {
+  background: transparent;
+  color: #9FADBC;
+  border: 1px solid #38414A;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.cf-btn-configure-fields:hover {
+  background: #282E33;
+  color: #DEE4EA;
+  border-color: #579DFF;
+}
+

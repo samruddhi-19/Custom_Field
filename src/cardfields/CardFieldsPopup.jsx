@@ -22,7 +22,6 @@ import {
   ConditionalIcon,
 } from "../ui/icons.jsx";
 import {
-  INITIAL_FIELDS,
   computeMemberAccessBadge,
   parsePermissionType,
   parseRolesFromPermString,
@@ -122,20 +121,6 @@ function checkConditionalRule(field, schema, values) {
   return true;
 }
 
-function getDefaultDescription(field) {
-  if (field.description) return field.description;
-  const name = (field.name || "").toLowerCase();
-  if (name.includes("priority")) return "Release priority tier for this task";
-  if (name.includes("story point") || name.includes("point")) return "Scrum estimation effort in story points";
-  if (name.includes("billable") || name.includes("hour")) return "Logged billable engineering hours";
-  if (name.includes("rate")) return "Contracted client billing rate per hour";
-  if (field.type === "formula") return `Live calculated budget formula: ${field.formula || "[Billable Hours] * [Hourly Rate]"}`;
-  if (name.includes("target") || name.includes("deployment") || field.type === "date") return "Scheduled release timestamp into production environment";
-  if (name.includes("qa") || field.type === "yesno") return "Quality Assurance verification approval toggle";
-  if (name.includes("security") || name.includes("compliance") || field.type === "checkbox") return "Mandatory compliance checks for enterprise features";
-  if (name.includes("release note") || field.type === "text") return "Public description for customer changelog";
-  return "Custom field property for this task";
-}
 
 function renderFieldTypeIcon(field) {
   const iconStyle = { flexShrink: 0 };
@@ -260,30 +245,6 @@ export default function CardFieldsPopup({ t }) {
     }
   }
 
-  async function handleLoadStandardFields() {
-    setSchema(INITIAL_FIELDS);
-    try {
-      await saveBoardSchema(t, INITIAL_FIELDS);
-      const currentVals = await getCardFieldValues(t);
-      if (!currentVals || Object.keys(currentVals).length === 0) {
-        const starterVals = {
-          fld_priority: "opt_high",
-          fld_points: 13,
-          fld_hours: 32,
-          fld_rate: 140,
-          fld_target_date: "2026-09-18 14:00",
-          fld_qa: true,
-          fld_security: { chk_sec_1: true },
-          fld_release_note: "Production release with custom fields tracking.",
-        };
-        setValues(starterVals);
-        await saveCardFieldValues(t, starterVals);
-      }
-    } catch (e) {
-      console.warn("Failed saving standard schema to board:", e);
-    }
-  }
-
   function handleOpenBoardSettings() {
     if (t && typeof t.modal === "function") {
       t.modal({
@@ -329,25 +290,16 @@ export default function CardFieldsPopup({ t }) {
         <div className="cf-cardback-empty-info">
           <h4 className="cf-cardback-empty-title">No custom fields configured yet</h4>
           <p className="cf-cardback-empty-desc">
-            Load the standard fields (Priority, Points, Hours, Rate, Budget Formula, QA) or configure your own.
+            Create and manage custom fields for this board to track extra details on your cards.
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            type="button"
-            onClick={handleLoadStandardFields}
-            className="cf-btn-trello-primary"
-          >
-            ⚡ Load Standard Fields
-          </button>
-          <button
-            type="button"
-            onClick={handleOpenBoardSettings}
-            className="cf-btn-trello-secondary"
-          >
-            + Configure
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleOpenBoardSettings}
+          className="cf-btn-trello-primary"
+        >
+          + Configure Fields
+        </button>
       </div>
     );
   }
@@ -713,14 +665,6 @@ export default function CardFieldsPopup({ t }) {
       </div>
 
       <div className="cf-cardback-footer">
-        <button
-          type="button"
-          onClick={handleLoadStandardFields}
-          className="cf-btn-load-standard"
-          title="Reset board fields to the 9 standard fields (Priority, Points, Hours, Rate, Budget, QA)"
-        >
-          ⚡ Load Standard Fields
-        </button>
         <button
           type="button"
           onClick={handleOpenBoardSettings}
