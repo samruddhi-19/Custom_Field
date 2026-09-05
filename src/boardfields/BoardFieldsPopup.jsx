@@ -218,58 +218,6 @@ export const DEFAULT_ROLES = [
   "Fullstack Engineer",
 ];
 
-export const FALLBACK_TEAM_MEMBERS = [
-  {
-    id: "mem_alex",
-    name: "Alex Morgan",
-    role: "Board Administrator",
-    roles: ["Board Admin"],
-    isAdmin: true,
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=64&h=64&fit=crop&crop=face",
-  },
-  {
-    id: "mem_sarah",
-    name: "Sarah Connor",
-    role: "Tech Lead / PM",
-    roles: ["Tech Lead / PM", "Project Lead"],
-    isAdmin: false,
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64&h=64&fit=crop&crop=face",
-  },
-  {
-    id: "mem_david",
-    name: "David Chen",
-    role: "Financial Controller",
-    roles: ["Financial Controller", "Finance Team"],
-    isAdmin: false,
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=face",
-  },
-  {
-    id: "mem_elena",
-    name: "Elena Rostova",
-    role: "QA Lead",
-    roles: ["QA Lead"],
-    isAdmin: false,
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=64&h=64&fit=crop&crop=face",
-  },
-  {
-    id: "mem_marcus",
-    name: "Marcus Brody",
-    role: "Fullstack Engineer",
-    roles: ["Fullstack Engineer", "Developer"],
-    isAdmin: false,
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=64&h=64&fit=crop&crop=face",
-  },
-  {
-    id: "mem_olivia",
-    name: "Olivia Taylor",
-    role: "Client Stakeholder",
-    roles: ["Client Stakeholder"],
-    isAdmin: false,
-    isGuest: true,
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=64&h=64&fit=crop&crop=face",
-  },
-];
-
 export function computeMemberAccessBadge(member, permType, allowedRoles = [], allowedUsers = []) {
   if (!member) return { label: "🔒 Restricted", className: "cf-access-badge-locked" };
   if (member.isAdmin) {
@@ -291,12 +239,7 @@ export function computeMemberAccessBadge(member, permType, allowedRoles = [], al
     const memRoles = member.roles || (member.role ? [member.role] : []);
     const match = memRoles.some((r) =>
       allowedRoles.some(
-        (ar) =>
-          ar &&
-          r &&
-          (ar.toLowerCase() === r.toLowerCase() ||
-            (ar === "Finance Team" && r.toLowerCase().includes("financ")) ||
-            (ar === "Tech Lead / PM" && (r.toLowerCase().includes("pm") || r.toLowerCase().includes("lead"))))
+        (ar) => ar && r && ar.trim().toLowerCase() === r.trim().toLowerCase()
       )
     );
     return match
@@ -321,7 +264,7 @@ export function computeMemberAccessBadge(member, permType, allowedRoles = [], al
 export function parsePermissionType(permString) {
   if (!permString) return "everyone";
   const p = permString.toLowerCase();
-  if (p.includes("admin") && !p.includes("lead") && !p.includes("finance") && !p.includes("qa")) return "admins";
+  if (p.includes("admin")) return "admins";
   if (p.includes("card member")) return "card_members";
   if (p.includes("role")) return "roles";
   if (p.includes("user")) return "users";
@@ -330,10 +273,10 @@ export function parsePermissionType(permString) {
 }
 
 export function parseRolesFromPermString(permString) {
-  if (!permString || !permString.toLowerCase().includes("roles:")) return ["Board Admin", "Tech Lead / PM"];
+  if (!permString || !permString.toLowerCase().includes("roles:")) return ["Board Admin"];
   const parts = permString.split(":")[1]?.split(",") || [];
   const trimmed = parts.map((s) => s.trim()).filter(Boolean);
-  return trimmed.length > 0 ? trimmed : ["Board Admin", "Tech Lead / PM"];
+  return trimmed.length > 0 ? trimmed : ["Board Admin"];
 }
 
 const STEP_TABS = ["config", "permissions", "display"];
@@ -356,24 +299,24 @@ export default function BoardFieldsPopup({ t }) {
 
   // Search & Simulation states
   const [searchQuery, setSearchQuery] = useState("");
-  const [boardMembers, setBoardMembers] = useState(FALLBACK_TEAM_MEMBERS);
-  const [boardAdminName, setBoardAdminName] = useState("Board Administrator");
+  const [boardMembers, setBoardMembers] = useState([]);
+  const [boardAdminName, setBoardAdminName] = useState("");
   const [simulatedRole, setSimulatedRole] = useState(() => {
     try {
       const stored = localStorage.getItem("cf_simulated_role");
       if (stored) return stored;
     } catch {}
-    return "Alex Morgan (Board Administrator)";
+    return "";
   });
   const [memberOptions, setMemberOptions] = useState([]);
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const roleDropdownRef = useRef(null);
 
   const [matrixPermType, setMatrixPermType] = useState("everyone");
-  const [matrixRoles, setMatrixRoles] = useState(["Tech Lead / PM", "Board Admin"]);
-  const [matrixUsers, setMatrixUsers] = useState(["Alex Morgan", "Sarah Connor"]);
+  const [matrixRoles, setMatrixRoles] = useState(["Board Admin"]);
+  const [matrixUsers, setMatrixUsers] = useState([]);
 
-  const effectiveDisplayMembers = boardMembers.length > 0 ? boardMembers : FALLBACK_TEAM_MEMBERS;
+  const effectiveDisplayMembers = boardMembers;
   const availableUsers = effectiveDisplayMembers.map((m) => m.name);
   const availableRoles = Array.from(
     new Set([
@@ -420,8 +363,8 @@ export default function BoardFieldsPopup({ t }) {
   const [showBadgeFront, setShowBadgeFront] = useState(true);
   const [editPermission, setEditPermission] = useState("Everyone on Board");
   const [permissionType, setPermissionType] = useState("everyone"); // everyone | admins | card_members | roles | users
-  const [allowedRoles, setAllowedRoles] = useState(["Tech Lead / PM", "Board Admin"]);
-  const [allowedUsers, setAllowedUsers] = useState(["Alex Morgan", "Sarah Connor"]);
+  const [allowedRoles, setAllowedRoles] = useState(["Board Admin"]);
+  const [allowedUsers, setAllowedUsers] = useState([]);
   const [options, setOptions] = useState([]);
   const [prefix, setPrefix] = useState("");
   const [suffix, setSuffix] = useState("");
@@ -446,12 +389,8 @@ export default function BoardFieldsPopup({ t }) {
   useEffect(() => {
     async function load() {
       try {
-        let s = await getBoardSchema(t);
-        if (!Array.isArray(s) || s.length === 0) {
-          s = INITIAL_FIELDS;
-          await saveBoardSchema(t, s);
-        }
-        setSchema(s);
+        const s = await getBoardSchema(t);
+        setSchema(Array.isArray(s) ? s : []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -461,11 +400,11 @@ export default function BoardFieldsPopup({ t }) {
       // Fetch actual board members from Trello board
       try {
         const bMembers = await getBoardMembers(t);
-        setBoardMembers(bMembers);
+        setBoardMembers(bMembers || []);
 
         let currentName = "";
         if (t && typeof t.member === "function") {
-          const mem = await t.member("id", "fullName", "username");
+          const mem = await t.member("id", "fullName", "username").catch(() => null);
           if (mem?.fullName) currentName = mem.fullName;
           else if (mem?.username) currentName = mem.username;
         }
@@ -476,14 +415,17 @@ export default function BoardFieldsPopup({ t }) {
           else if (apiMem?.username) currentName = apiMem.username;
         }
 
-        const adminMem = bMembers.find((m) => m.isAdmin) || bMembers[0];
+        const adminMem = (bMembers || []).find((m) => m.isAdmin) || (bMembers || [])[0];
         const primaryName = currentName || adminMem?.name || "Board Administrator";
 
         setBoardAdminName(primaryName);
-        if (bMembers.length > 0) {
+        if (bMembers && bMembers.length > 0) {
           const defaultSim = `${(adminMem || bMembers[0]).name} (${(adminMem || bMembers[0]).role})`;
           setSimulatedRole((prev) => (prev && bMembers.some((m) => prev.startsWith(m.name)) ? prev : defaultSim));
           setMemberOptions(bMembers.map((m) => `${m.name} (${m.role})`));
+        } else {
+          setSimulatedRole(primaryName);
+          setMemberOptions([primaryName]);
         }
       } catch (e) {
         console.warn("Could not fetch Trello member details:", e);
@@ -491,6 +433,12 @@ export default function BoardFieldsPopup({ t }) {
     }
     load();
   }, [t]);
+
+  async function handleLoadStarterTemplates() {
+    setSchema(INITIAL_FIELDS);
+    await saveBoardSchema(t, INITIAL_FIELDS);
+    showToast("Starter fields loaded!");
+  }
 
   /* ─── Handlers ─── */
 
@@ -525,8 +473,8 @@ export default function BoardFieldsPopup({ t }) {
     setType(selectedType);
     setShowBadgeFront(true);
     setPermissionType("everyone");
-    setAllowedRoles(["Tech Lead / PM", "Board Admin"]);
-    setAllowedUsers(["Alex Morgan", "Sarah Connor"]);
+    setAllowedRoles(["Board Admin"]);
+    setAllowedUsers([]);
     setEditPermission(selectedType === "formula" ? "Auto Calculated" : "Everyone on Board");
     setOptions(selectedType === "dropdown" ? [...DEFAULT_DROPDOWN_OPTIONS] : []);
     setPrefix("");
@@ -559,7 +507,7 @@ export default function BoardFieldsPopup({ t }) {
     const resolvedType = field.permissionType || parsePermissionType(field.editPermission);
     setPermissionType(resolvedType);
     setAllowedRoles(field.allowedRoles || parseRolesFromPermString(field.editPermission));
-    setAllowedUsers(field.allowedUsers || ["Alex Morgan", "Sarah Connor"]);
+    setAllowedUsers(field.allowedUsers || []);
     setEditPermission(field.editPermission || (field.type === "formula" ? "Auto Calculated" : "Everyone on Board"));
     setOptions(field.options ? JSON.parse(JSON.stringify(field.options)) : []);
     setPrefix(field.prefix || "");
@@ -1454,7 +1402,7 @@ export default function BoardFieldsPopup({ t }) {
                           <span>👑</span>
                         </div>
                         <div className="cf-perm-option-desc">
-                          Strictly locked to Board Admins (e.g. Alex Morgan).
+                          Strictly locked to Board Admins{boardAdminName ? ` (${boardAdminName})` : ""}.
                         </div>
                       </div>
                       {permissionType === "admins" ? (
@@ -2090,14 +2038,25 @@ export default function BoardFieldsPopup({ t }) {
             ) : (
               <div className="cf-empty-state">
                 <p>No custom fields found{searchQuery ? ` matching "${searchQuery}"` : ""}.</p>
-                <button
-                  type="button"
-                  className="cf-btn-new-field-primary"
-                  onClick={() => handleStartAdd()}
-                  style={{ marginTop: 8 }}
-                >
-                  + New Custom Field
-                </button>
+                <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 8 }}>
+                  <button
+                    type="button"
+                    className="cf-btn-new-field-primary"
+                    onClick={() => handleStartAdd()}
+                  >
+                    + New Custom Field
+                  </button>
+                  {!searchQuery && (
+                    <button
+                      type="button"
+                      className="cf-btn-header"
+                      onClick={handleLoadStarterTemplates}
+                    >
+                      <TemplateIcon width={14} height={14} />
+                      <span>Load Starter Fields</span>
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -2141,7 +2100,7 @@ export default function BoardFieldsPopup({ t }) {
                       <span>👑</span>
                     </div>
                     <div className="cf-perm-option-desc">
-                      Strictly locked to Board Admins (e.g. Alex Morgan).
+                      Strictly locked to Board Admins{boardAdminName ? ` (${boardAdminName})` : ""}.
                     </div>
                   </div>
                   {matrixPermType === "admins" ? (

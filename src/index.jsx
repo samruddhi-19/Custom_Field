@@ -337,6 +337,11 @@ function HostApp() {
         { idMember: "mem_olivia", memberType: "normal" },
       ],
     }),
+    card: async () => ({
+      id: "c_1",
+      name: "AI Semantic Search for Customer Support Docs",
+      idMembers: ["mem_alex"],
+    }),
     closeModal: () => {
       setModalOpen(false);
       reloadSchemaFromStorage();

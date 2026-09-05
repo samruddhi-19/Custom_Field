@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getBoardSchema, getCardFieldValues, saveCardFieldValues, getBoardMembers } from "../lib/trelloApi.js";
+import { getBoardSchema, getCardFieldValues, saveCardFieldValues, getBoardMembers, getCurrentCard } from "../lib/trelloApi.js";
 import { styles } from "../lib/ui.js";
 import { SpinnerIcon, LockIcon } from "../ui/icons.jsx";
 import {
@@ -65,6 +65,9 @@ export default function CardFieldsPopup({ t }) {
   const [loading, setLoading] = useState(true);
 
   const [boardMembers, setBoardMembers] = useState([]);
+  const [currentCard, setCurrentCard] = useState(null);
+  const [loggedInMember, setLoggedInMember] = useState(null);
+
   // Simulated member for testing & permission enforcement
   const [simulatedMemberId, setSimulatedMemberId] = useState(() => {
     try {
@@ -74,12 +77,22 @@ export default function CardFieldsPopup({ t }) {
     return "";
   });
 
-  const currentMember = boardMembers.find((m) => m.id === simulatedMemberId) || boardMembers[0] || {
-    id: "mem_board",
-    name: "Board Member",
-    role: "Board Administrator",
-    isAdmin: true,
-  };
+  const currentMember =
+    boardMembers.find((m) => m.id === simulatedMemberId) ||
+    boardMembers[0] ||
+    (loggedInMember
+      ? {
+          id: loggedInMember.id,
+          name: loggedInMember.fullName || loggedInMember.username || "Board Member",
+          role: "Team Member",
+          isAdmin: false,
+        }
+      : {
+          id: "member",
+          name: "Board Member",
+          role: "Team Member",
+          isAdmin: false,
+        });
 
   useEffect(() => {
     function handleStorage() {
@@ -97,12 +110,22 @@ export default function CardFieldsPopup({ t }) {
   useEffect(() => {
     async function load() {
       try {
-        const [s, v, m] = await Promise.all([getBoardSchema(t), getCardFieldValues(t), getBoardMembers(t)]);
-        setSchema(s);
-        setValues(v);
-        setBoardMembers(m);
+        const [s, v, m, card, tMem] = await Promise.all([
+          getBoardSchema(t),
+          getCardFieldValues(t),
+          getBoardMembers(t),
+          getCurrentCard(t),
+          t && typeof t.member === "function" ? t.member("id", "fullName", "username").catch(() => null) : null,
+        ]);
+        setSchema(s || []);
+        setValues(v || {});
+        setBoardMembers(m || []);
+        setCurrentCard(card);
+        setLoggedInMember(tMem);
         if (m && m.length > 0) {
-          setSimulatedMemberId((prev) => (prev && m.some((item) => item.id === prev) ? prev : (m.find((item) => item.isAdmin) || m[0]).id));
+          const matchedUser = tMem ? m.find((item) => item.id === tMem.id || (tMem.username && item.username === tMem.username)) : null;
+          const adminUser = m.find((item) => item.isAdmin) || m[0];
+          setSimulatedMemberId((prev) => (prev && m.some((item) => item.id === prev) ? prev : (matchedUser || adminUser).id));
         }
       } catch (err) {
         console.error(err);
@@ -209,7 +232,14 @@ export default function CardFieldsPopup({ t }) {
           const allowedUsers = field.allowedUsers || [];
           const access = computeMemberAccessBadge(currentMember, permType, allowedRoles, allowedUsers);
           const isFormula = field.type === "formula";
-          const canEdit = !isFormula && !access.className.includes("locked") && !access.className.includes("guest");
+
+          const cardMemberIds = currentCard?.idMembers || (currentCard?.members || []).map((m) => m.id) || [];
+          const isAssignedToCard = Boolean(currentMember?.id && cardMemberIds.includes(currentMember.id));
+
+          let canEdit = !isFormula && !access.className.includes("locked") && !access.className.includes("guest");
+          if (permType === "card_members" && !currentMember?.isAdmin && !isAssignedToCard) {
+            canEdit = false;
+          }
 
           return (
             <div key={field.id}>

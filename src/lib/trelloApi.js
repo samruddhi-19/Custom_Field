@@ -83,6 +83,18 @@ export function saveCardFieldValues(t, values) {
   return t.set("card", "shared", "custom_fields_values", values);
 }
 
+// Fetch Current Card details (including assigned member IDs)
+export async function getCurrentCard(t) {
+  if (!t || typeof t.card !== "function") return null;
+  try {
+    const cardData = await t.card("id", "name", "idMembers", "members").catch(() => null);
+    return cardData || null;
+  } catch (err) {
+    console.warn("Failed to get current card:", err);
+    return null;
+  }
+}
+
 // Fetch Board Members from Trello Power-Up / Board API
 export async function getBoardMembers(t) {
   if (!t) return [];

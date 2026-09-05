@@ -55,15 +55,8 @@ function formatBadge(field, value) {
       if (!field.options || !Array.isArray(field.options)) return null;
       const opt = field.options.find((o) => o.id === value) || field.options.find((o) => o.text === value);
       if (!opt) return null;
-      const optText = opt.text.replace(" Priority", "");
-      let badgeColor = "blue";
-      if (opt.text.toLowerCase().includes("high") || opt.text.toLowerCase().includes("critical")) {
-        badgeColor = "red";
-      } else if (opt.text.toLowerCase().includes("med")) {
-        badgeColor = "blue";
-      } else if (opt.text.toLowerCase().includes("low")) {
-        badgeColor = "green";
-      }
+      const optText = opt.text;
+      const badgeColor = resolveBadgeColor(opt.color) || "blue";
       return {
         title: field.name,
         text: `● ${optText}`,
@@ -112,7 +105,7 @@ function formatBadge(field, value) {
     case "yesno": {
       if (value === undefined || value === null) return null;
       const isYes = Boolean(value);
-      const text = isYes ? (field.yesLabel || "QA Passed") : (field.noLabel || "QA Pending");
+      const text = isYes ? (field.yesLabel || "Yes") : (field.noLabel || "No");
       return {
         title: field.name,
         text: `${isYes ? "✓" : "✕"} ${text}`,
@@ -279,50 +272,21 @@ TrelloPowerUp.initialize({
   },
 
   "card-badges": async function (t) {
-    const [schema, cardValues, cardInfo] = await Promise.all([
+    const [schema, cardValues] = await Promise.all([
       t.get("board", "shared", "custom_fields_schema", []),
       t.get("card", "shared", "custom_fields_values", null),
-      t.card("id", "name").catch(() => null),
     ]);
 
     if (!Array.isArray(schema) || schema.length === 0) return [];
+    if (!cardValues || typeof cardValues !== "object") return [];
 
-    let values = cardValues && Object.keys(cardValues).length > 0 ? cardValues : null;
-    if (!values) {
-      values = {};
-      const cardName = (cardInfo?.name || "").toLowerCase();
-      schema.forEach((field, i) => {
-        if (field.type === "dropdown" && field.options?.length > 0) {
-          if (cardName.includes("zero-day") || cardName.includes("bug")) {
-            values[field.id] = field.options.find((o) => o.text.includes("High"))?.id || field.options[0]?.id;
-          } else {
-            values[field.id] = field.options[i % field.options.length]?.id;
-          }
-        } else if (field.type === "number") {
-          if (field.id.includes("points") || field.name.toLowerCase().includes("point")) {
-            values[field.id] = cardName.includes("semantic") ? 21 : (cardName.includes("redis") ? 13 : 8);
-          } else if (field.id.includes("hours") || field.name.toLowerCase().includes("hour")) {
-            values[field.id] = cardName.includes("semantic") ? 45 : (cardName.includes("redis") ? 32 : 20);
-          } else if (field.id.includes("rate") || field.name.toLowerCase().includes("rate")) {
-            values[field.id] = 150;
-          } else {
-            values[field.id] = field.minValue || 10;
-          }
-        } else if (field.type === "date") {
-          values[field.id] = cardName.includes("semantic") ? "Oct 1 5:00pm" : "Sep 18 2:00pm";
-        } else if (field.type === "yesno") {
-          values[field.id] = cardName.includes("jwt") || cardName.includes("webhook");
-        } else if (field.type === "conditional") {
-          values[field.id] = "Escalated to Execs";
-        }
-      });
-    }
-
+    const values = cardValues;
     const badges = [];
     schema.forEach((field) => {
       if (field.showBadgeFront === false) return;
       if (!checkConditionalRule(field, schema, values)) return;
       const val = field.type === "formula" ? evaluateFormula(field.formula, schema, values) : values[field.id];
+      if (val === undefined || val === null || val === "") return;
       const badge = formatBadge(field, val);
       if (badge) {
         badges.push({
