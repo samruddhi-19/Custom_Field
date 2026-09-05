@@ -326,8 +326,6 @@ export default function CardFieldsPopup({ t }) {
             canEdit = false;
           }
 
-          const descText = getDefaultDescription(field);
-
           return (
             <div key={field.id} className="cf-cardback-item">
               {/* Header Row */}
