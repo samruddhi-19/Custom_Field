@@ -319,42 +319,7 @@ export default function CardFieldsPopup({ t }) {
 
   return (
     <div className="cf-cardback-root">
-      {/* Top action toolbar matching Trello Card Cover structure */}
-      <div className="cf-cardback-topbar">
-        <div className="cf-cardback-topbar-left">
-          <span className="cf-cardback-topbar-title">
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#579DFF"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="3" ry="3" />
-              <line x1="7" y1="8" x2="13" y2="8" />
-              <circle cx="16.5" cy="8" r="1.5" fill="#579DFF" />
-              <line x1="7" y1="12" x2="17" y2="12" />
-              <line x1="7" y1="16" x2="11" y2="16" />
-              <polyline points="14 16 15.5 17.5 18 14.5" />
-            </svg>
-            <span>Custom Fields</span>
-          </span>
-          <span className="cf-cardback-topbar-badge">{schema.length} fields</span>
-        </div>
-        <button
-          type="button"
-          onClick={handleOpenBoardSettings}
-          className="cf-btn-trello-subtle"
-          title="Configure custom fields"
-        >
-          <span>+ Add Field</span>
-        </button>
-      </div>
-
-      {/* 2-Column Grid matching Screenshot */}
+      {/* 2-Column Grid */}
       <div className="cf-cardback-grid">
         {schema.map((field) => {
           const val = values[field.id];
@@ -374,59 +339,34 @@ export default function CardFieldsPopup({ t }) {
             canEdit = false;
           }
 
-          const descText = getDefaultDescription(field);
-
           return (
             <div key={field.id} className="cf-cardback-item">
-              {/* Header Row */}
+              {/* Clean Label Header */}
               <div className="cf-cardback-header">
-                <div className="cf-cardback-header-left">
-                  <div className="cf-cardback-icon">{renderFieldTypeIcon(field)}</div>
-                  <span className="cf-cardback-title">{field.name}</span>
+                <span className="cf-cardback-title" title={field.description || field.name}>
+                  {field.name}
+                </span>
 
-                  {field.showBadgeFront !== false && (
-                    <span className="cf-badge-cardfront">Card Front</span>
+                <div className="cf-cardback-meta">
+                  {isFormula && (
+                    <button
+                      type="button"
+                      className="cf-btn-inspect"
+                      onClick={() =>
+                        setInspectFormulaId((prev) => (prev === field.id ? null : field.id))
+                      }
+                      title="Inspect formula calculation"
+                    >
+                      <span className="cf-tag-formula">fx</span>
+                    </button>
                   )}
 
-                  {isFormula && (
-                    <>
-                      <span className="cf-badge-formula">FORMULA</span>
-                      <button
-                        type="button"
-                        className="cf-btn-inspect"
-                        onClick={() =>
-                          setInspectFormulaId((prev) => (prev === field.id ? null : field.id))
-                        }
-                        title="Inspect formula calculation"
-                      >
-                        <SparkleIcon width={11} height={11} />
-                        <span>Inspect</span>
-                      </button>
-                    </>
+                  {!canEdit && (
+                    <span className="cf-tag-locked" title={access.label}>
+                      <LockIcon width={11} height={11} />
+                    </span>
                   )}
                 </div>
-
-                {/* Right access indicator */}
-                {!isFormula && (
-                  canEdit ? (
-                    <span className="cf-cardback-status-editable">Editable</span>
-                  ) : (
-                    <span className="cf-cardback-status-locked" title={access.label}>
-                      <LockIcon width={10} height={10} />
-                      <span>{access.label.replace("🔒 ", "").replace("✓ ", "")}</span>
-                    </span>
-                  )
-                )}
-              </div>
-
-              {/* Sub-header / Description row */}
-              <div className="cf-cardback-desc">
-                <span className="cf-cardback-desc-icon">
-                  <InfoIcon width={12} height={12} />
-                </span>
-                <span className="cf-cardback-desc-text" title={descText}>
-                  {descText}
-                </span>
               </div>
 
               {/* Control Widgets */}
@@ -435,100 +375,46 @@ export default function CardFieldsPopup({ t }) {
                 (() => {
                   const opts = field.options || [];
                   const selectedOpt = opts.find((o) => o.id === val || o.text === val);
-                  const optColorHex = selectedOpt
-                    ? selectedOpt.color?.startsWith("#")
-                      ? selectedOpt.color
-                      : COLOR_MAP[selectedOpt.color] || "#FF8B00"
-                    : "#FF8B00";
 
                   return (
-                    <div>
-                      <div className="cf-select-wrap">
-                        <select
-                          disabled={!canEdit}
-                          className="cf-cardback-select"
-                          value={selectedOpt ? selectedOpt.id : val || ""}
-                          onChange={(e) => handleChange(field.id, e.target.value)}
-                        >
-                          <option value="">Select option...</option>
-                          {opts.map((opt) => (
-                            <option key={opt.id} value={opt.id}>
-                              {opt.text}
-                            </option>
-                          ))}
-                        </select>
-                        <span className="cf-select-chevron">▾</span>
-                      </div>
-
-                      {selectedOpt && (
-                        <div className="cf-selected-chip-row">
-                          <span className="cf-chip-dot" style={{ background: optColorHex }} />
-                          <span>{selectedOpt.text}</span>
-                        </div>
-                      )}
+                    <div className="cf-select-wrap">
+                      <select
+                        disabled={!canEdit}
+                        className="cf-cardback-select"
+                        value={selectedOpt ? selectedOpt.id : val || ""}
+                        onChange={(e) => handleChange(field.id, e.target.value)}
+                      >
+                        <option value="">Select option...</option>
+                        {opts.map((opt) => (
+                          <option key={opt.id} value={opt.id}>
+                            {opt.text}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="cf-select-chevron">▾</span>
                     </div>
                   );
                 })()
               )}
 
-              {/* 2. Number with Stepper Buttons */}
+              {/* 2. Clean Number Input */}
               {field.type === "number" && (
-                (() => {
-                  const numVal = val !== undefined && val !== null && val !== "" ? Number(val) : "";
-                  const step = field.decimalPlaces ? Math.pow(10, -Number(field.decimalPlaces)) : 1;
-
-                  function handleStep(delta) {
-                    if (!canEdit) return;
-                    const cur = typeof numVal === "number" && !isNaN(numVal) ? numVal : (field.minValue !== undefined ? Number(field.minValue) : 0);
-                    let next = Math.round((cur + delta) * 100) / 100;
-                    if (field.minValue !== undefined && next < Number(field.minValue)) {
-                      next = Number(field.minValue);
+                <div className="cf-number-input-box">
+                  {field.prefix && <span className="cf-number-prefix">{field.prefix}</span>}
+                  <input
+                    type="number"
+                    disabled={!canEdit}
+                    className="cf-number-native-input"
+                    value={val !== undefined && val !== null ? val : ""}
+                    placeholder="0"
+                    step={field.decimalPlaces ? `0.${"0".repeat(Math.max(0, field.decimalPlaces - 1))}1` : "any"}
+                    min={field.minValue !== undefined ? field.minValue : undefined}
+                    onChange={(e) =>
+                      handleChange(field.id, e.target.value === "" ? null : Number(e.target.value))
                     }
-                    handleChange(field.id, next);
-                  }
-
-                  return (
-                    <div className="cf-number-stepper-row">
-                      <div className="cf-number-input-box">
-                        {field.prefix && <span className="cf-number-prefix">{field.prefix}</span>}
-                        <input
-                          type="number"
-                          disabled={!canEdit}
-                          className="cf-number-native-input"
-                          value={val !== undefined && val !== null ? val : ""}
-                          placeholder="0"
-                          step={field.decimalPlaces ? `0.${"0".repeat(Math.max(0, field.decimalPlaces - 1))}1` : "any"}
-                          min={field.minValue !== undefined ? field.minValue : undefined}
-                          onChange={(e) =>
-                            handleChange(field.id, e.target.value === "" ? null : Number(e.target.value))
-                          }
-                        />
-                        {field.suffix && <span className="cf-number-suffix">{field.suffix}</span>}
-                      </div>
-
-                      <div className="cf-stepper-btns">
-                        <button
-                          type="button"
-                          disabled={!canEdit}
-                          className="cf-btn-stepper"
-                          onClick={() => handleStep(-step)}
-                          title="Decrement"
-                        >
-                          −
-                        </button>
-                        <button
-                          type="button"
-                          disabled={!canEdit}
-                          className="cf-btn-stepper"
-                          onClick={() => handleStep(step)}
-                          title="Increment"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })()
+                  />
+                  {field.suffix && <span className="cf-number-suffix">{field.suffix}</span>}
+                </div>
               )}
 
               {/* 3. Formula with Highlighted Box */}
@@ -747,6 +633,16 @@ export default function CardFieldsPopup({ t }) {
             </div>
           );
         })}
+      </div>
+
+      <div className="cf-cardback-footer">
+        <button
+          type="button"
+          onClick={handleOpenBoardSettings}
+          className="cf-btn-configure-fields"
+        >
+          + Add or manage fields
+        </button>
       </div>
     </div>
   );

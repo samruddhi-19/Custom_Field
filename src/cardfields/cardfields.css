@@ -6,7 +6,7 @@
   border-radius: 8px;
   color: #DEE4EA;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-  padding: 14px 16px;
+  padding: 16px 18px 12px 18px;
   box-sizing: border-box;
   width: 100%;
 }
@@ -14,14 +14,14 @@
 .cf-cardback-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px 18px;
+  gap: 16px 20px;
   align-items: start;
 }
 
-@media (max-width: 420px) {
+@media (max-width: 440px) {
   .cf-cardback-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 14px;
   }
 }
 
@@ -31,129 +31,65 @@
   min-width: 0;
 }
 
-/* Header Line */
+/* Clean Field Label Header */
 .cf-cardback-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 3px;
+  margin-bottom: 6px;
   gap: 6px;
-}
-
-.cf-cardback-header-left {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-.cf-cardback-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
 }
 
 .cf-cardback-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: #DEE4EA;
+  color: #9FADBC;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  cursor: default;
+  transition: color 0.15s ease;
 }
 
-.cf-badge-cardfront {
-  font-size: 9.5px;
-  font-weight: 600;
-  color: #4BCE97;
-  background: rgba(75, 206, 151, 0.12);
-  border: 1px solid rgba(75, 206, 151, 0.35);
-  border-radius: 3px;
-  padding: 1px 5px;
-  line-height: 1.2;
-  white-space: nowrap;
+.cf-cardback-item:hover .cf-cardback-title {
+  color: #DEE4EA;
 }
 
-.cf-badge-formula {
-  font-size: 9.5px;
+.cf-cardback-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.cf-tag-formula {
+  font-size: 10px;
   font-weight: 700;
   color: #C084FC;
   background: rgba(192, 132, 252, 0.15);
   border: 1px solid rgba(192, 132, 252, 0.35);
   border-radius: 3px;
-  padding: 1px 5px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
+  padding: 1px 4px;
+  line-height: 1.2;
+}
+
+.cf-tag-locked {
+  color: #85B8FF;
+  display: flex;
+  align-items: center;
+  opacity: 0.85;
 }
 
 .cf-btn-inspect {
   background: none;
   border: none;
-  color: #C084FC;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 0;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 0;
-  transition: opacity 0.15s ease;
 }
 
-.cf-btn-inspect:hover {
-  opacity: 0.85;
-  text-decoration: underline;
-}
-
-.cf-cardback-status-editable {
-  color: #4BCE97;
-  font-size: 11px;
-  font-weight: 600;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-.cf-cardback-status-locked {
-  color: #85B8FF;
-  font-size: 10.5px;
-  font-weight: 600;
-  background: rgba(133, 184, 255, 0.1);
-  border: 1px solid rgba(133, 184, 255, 0.25);
-  border-radius: 3px;
-  padding: 1px 5px;
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  flex-shrink: 0;
-}
-
-/* Description / Help text */
-.cf-cardback-desc {
-  display: flex;
-  align-items: flex-start;
-  gap: 5px;
-  font-size: 11px;
-  color: #9FADBC;
-  margin-bottom: 7px;
-  line-height: 1.35;
-}
-
-.cf-cardback-desc-icon {
-  flex-shrink: 0;
-  margin-top: 1px;
-  color: #738496;
-}
-
-.cf-cardback-desc-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Dropdown */
+/* 1. Dropdown Select */
 .cf-select-wrap {
   position: relative;
   width: 100%;
@@ -161,13 +97,15 @@
 
 .cf-cardback-select {
   width: 100%;
-  padding: 6.5px 28px 6.5px 10px;
+  height: 34px;
+  padding: 6px 28px 6px 10px;
   background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
   color: #DEE4EA;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 500;
+  font-family: inherit;
   outline: none;
   appearance: none;
   cursor: pointer;
@@ -183,6 +121,13 @@
 .cf-cardback-select:focus {
   border-color: #579DFF;
   box-shadow: 0 0 0 1px #579DFF;
+  background: #1D2125;
+}
+
+.cf-cardback-select:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background: #161A1D;
 }
 
 .cf-select-chevron {
@@ -195,39 +140,15 @@
   font-size: 11px;
 }
 
-.cf-selected-chip-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 5px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #DEE4EA;
-}
-
-.cf-chip-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-/* Number with Stepper */
-.cf-number-stepper-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-}
-
+/* 2. Number Input Box */
 .cf-number-input-box {
-  flex: 1;
   display: flex;
   align-items: center;
   background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
-  padding: 5px 10px;
+  padding: 0 10px;
+  height: 34px;
   box-sizing: border-box;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
@@ -240,13 +161,23 @@
 .cf-number-input-box:focus-within {
   border-color: #579DFF;
   box-shadow: 0 0 0 1px #579DFF;
+  background: #1D2125;
+}
+
+.cf-number-prefix,
+.cf-number-suffix {
+  color: #9FADBC;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .cf-number-prefix {
-  color: #9FADBC;
-  font-size: 12.5px;
-  font-weight: 600;
   margin-right: 4px;
+}
+
+.cf-number-suffix {
+  margin-left: 4px;
 }
 
 .cf-number-native-input {
@@ -255,12 +186,13 @@
   border: none;
   outline: none;
   color: #DEE4EA;
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0 2px;
   min-width: 0;
+  font-family: inherit;
 }
 
-/* Hide native arrows */
 .cf-number-native-input::-webkit-outer-spin-button,
 .cf-number-native-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -270,54 +202,18 @@
   -moz-appearance: textfield;
 }
 
-.cf-number-suffix {
-  color: #9FADBC;
-  font-size: 11.5px;
-  font-weight: 500;
-  margin-left: 4px;
-  white-space: nowrap;
-}
-
-.cf-stepper-btns {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.cf-btn-stepper {
-  width: 28px;
-  height: 29px;
-  border-radius: 4px;
-  border: 1px solid #38414A;
-  background: #1D2125;
-  color: #DEE4EA;
-  font-size: 13px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-  padding: 0;
-}
-
-.cf-btn-stepper:hover:not(:disabled) {
-  background: #282E33;
-  border-color: #579DFF;
-  color: #FFFFFF;
-}
-
-.cf-btn-stepper:disabled {
-  opacity: 0.4;
+.cf-number-native-input:disabled {
+  opacity: 0.65;
   cursor: not-allowed;
 }
 
-/* Formula Card */
+/* 3. Formula Box */
 .cf-formula-box {
-  background: rgba(155, 138, 255, 0.08);
-  border: 1px solid rgba(155, 138, 255, 0.25);
+  background: #1D2125;
+  border: 1px solid #38414A;
   border-radius: 4px;
-  padding: 7px 12px;
+  height: 34px;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -325,10 +221,9 @@
 }
 
 .cf-formula-val {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 13.5px;
+  font-weight: 600;
   color: #DEE4EA;
-  letter-spacing: -0.2px;
 }
 
 .cf-formula-tag {
@@ -348,7 +243,7 @@
   line-height: 1.4;
 }
 
-/* Date & Time Dual Pickers */
+/* 4. Date & Time Dual Pickers */
 .cf-datetime-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -364,18 +259,18 @@
 .cf-datetime-sublabel {
   font-size: 10.5px;
   color: #9FADBC;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   font-weight: 500;
 }
 
 .cf-datetime-input-wrap {
-  position: relative;
   display: flex;
   align-items: center;
   background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
-  padding: 5px 8px;
+  padding: 0 8px;
+  height: 34px;
   box-sizing: border-box;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
@@ -388,6 +283,7 @@
 .cf-datetime-input-wrap:focus-within {
   border-color: #579DFF;
   box-shadow: 0 0 0 1px #579DFF;
+  background: #1D2125;
 }
 
 .cf-datetime-native-input {
@@ -407,7 +303,7 @@
   cursor: pointer;
 }
 
-/* Yes / No Segmented Toggle */
+/* 5. Yes / No Toggle */
 .cf-yesno-toggle-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -420,7 +316,8 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  padding: 6.5px 10px;
+  height: 34px;
+  padding: 0 10px;
   border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
@@ -433,7 +330,7 @@
   background: #1C2B41;
   border: 1.5px solid #579DFF;
   color: #FFFFFF;
-  box-shadow: 0 0 8px rgba(87, 157, 255, 0.25);
+  box-shadow: 0 0 6px rgba(87, 157, 255, 0.25);
 }
 
 .cf-btn-yesno.inactive {
@@ -453,7 +350,7 @@
   cursor: not-allowed;
 }
 
-/* Checklist / Checkbox Items */
+/* 6. Checklist / Checkbox */
 .cf-checklist-container {
   display: flex;
   flex-direction: column;
@@ -498,41 +395,16 @@
   color: #FFFFFF;
 }
 
-/* Text Input & Textarea */
-.cf-cardback-textarea {
+/* 7. Text Input & Textarea */
+.cf-cardback-input-text {
   width: 100%;
+  height: 34px;
   background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
   padding: 6px 10px;
   color: #DEE4EA;
-  font-size: 12px;
-  font-family: inherit;
-  resize: vertical;
-  min-height: 42px;
-  outline: none;
-  box-sizing: border-box;
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.cf-cardback-textarea:hover {
-  background: #282E33;
-  border-color: #454F59;
-}
-
-.cf-cardback-textarea:focus {
-  border-color: #579DFF;
-  box-shadow: 0 0 0 1px #579DFF;
-}
-
-.cf-cardback-input-text {
-  width: 100%;
-  background: #1D2125;
-  border: 1px solid #38414A;
-  border-radius: 4px;
-  padding: 5.5px 10px;
-  color: #DEE4EA;
-  font-size: 12px;
+  font-size: 13px;
   font-family: inherit;
   outline: none;
   box-sizing: border-box;
@@ -547,64 +419,72 @@
 .cf-cardback-input-text:focus {
   border-color: #579DFF;
   box-shadow: 0 0 0 1px #579DFF;
+  background: #1D2125;
 }
 
-/* Top Action Toolbar */
-.cf-cardback-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #38414A;
-  gap: 8px;
+.cf-cardback-input-text:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background: #161A1D;
 }
 
-.cf-cardback-topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.cf-cardback-topbar-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: #DEE4EA;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.cf-cardback-topbar-badge {
-  font-size: 11px;
-  font-weight: 600;
-  color: #9FADBC;
-  background: #282E33;
-  border: 1px solid #38414A;
-  border-radius: 10px;
-  padding: 1px 7px;
-}
-
-.cf-btn-trello-subtle {
-  background: #282E33;
+.cf-cardback-textarea {
+  width: 100%;
+  background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
+  padding: 6px 10px;
   color: #DEE4EA;
-  font-size: 11.5px;
-  font-weight: 600;
-  padding: 4px 10px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.15s ease;
-  white-space: nowrap;
+  font-size: 12.5px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 48px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.cf-btn-trello-subtle:hover {
-  background: #323940;
+.cf-cardback-textarea:hover {
+  background: #282E33;
+  border-color: #454F59;
+}
+
+.cf-cardback-textarea:focus {
   border-color: #579DFF;
+  box-shadow: 0 0 0 1px #579DFF;
+  background: #1D2125;
+}
+
+.cf-cardback-textarea:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background: #161A1D;
+}
+
+/* Section Footer Link */
+.cf-cardback-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cf-btn-configure-fields {
+  background: none;
+  border: none;
+  color: #85B8FF;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 3px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.cf-btn-configure-fields:hover {
+  background: rgba(87, 157, 255, 0.1);
   color: #579DFF;
 }
 
