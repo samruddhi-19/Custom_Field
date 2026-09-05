@@ -1,12 +1,12 @@
 /* ─── Trello Native Card Back Section Styles ─── */
 
 .cf-cardback-root {
-  background: #22272B;
-  border: 1px solid #38414A;
+  background: #181C20;
+  border: 1px solid #282E33;
   border-radius: 8px;
   color: #DEE4EA;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-  padding: 16px 18px 12px 18px;
+  padding: 16px 18px 14px 18px;
   box-sizing: border-box;
   width: 100%;
 }
@@ -31,65 +31,150 @@
   min-width: 0;
 }
 
-/* Clean Field Label Header */
+/* Header Row */
 .cf-cardback-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: 2px;
   gap: 6px;
+  min-width: 0;
 }
 
-.cf-cardback-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: #9FADBC;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: default;
-  transition: color 0.15s ease;
-}
-
-.cf-cardback-item:hover .cf-cardback-title {
-  color: #DEE4EA;
-}
-
-.cf-cardback-meta {
+.cf-cardback-header-left {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.cf-cardback-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-.cf-tag-formula {
-  font-size: 10px;
+.cf-cardback-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #DEE4EA;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cf-badge-cardfront {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #4BCE97;
+  background: rgba(75, 206, 151, 0.12);
+  border: 1px solid rgba(75, 206, 151, 0.35);
+  border-radius: 3px;
+  padding: 1px 5px;
+  line-height: 1.2;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cf-badge-formula {
+  font-size: 9.5px;
   font-weight: 700;
   color: #C084FC;
   background: rgba(192, 132, 252, 0.15);
   border: 1px solid rgba(192, 132, 252, 0.35);
   border-radius: 3px;
-  padding: 1px 4px;
-  line-height: 1.2;
-}
-
-.cf-tag-locked {
-  color: #85B8FF;
-  display: flex;
-  align-items: center;
-  opacity: 0.85;
+  padding: 1px 5px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .cf-btn-inspect {
   background: none;
   border: none;
-  padding: 0;
+  color: #C084FC;
+  font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  gap: 3px;
+  padding: 0;
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
 }
 
-/* 1. Dropdown Select */
+.cf-btn-inspect:hover {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+.cf-cardback-status-editable {
+  color: #4BCE97;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.cf-cardback-status-locked {
+  color: #85B8FF;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: rgba(133, 184, 255, 0.1);
+  border: 1px solid rgba(133, 184, 255, 0.25);
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Description / Help text */
+.cf-cardback-desc {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: #9FADBC;
+  margin-bottom: 7px;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.cf-cardback-desc-icon {
+  flex-shrink: 0;
+  color: #738496;
+  display: flex;
+  align-items: center;
+}
+
+.cf-cardback-desc-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.cf-formula-subtitle {
+  font-size: 11.5px;
+  color: #9FADBC;
+  margin-bottom: 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 1. Dropdown */
 .cf-select-wrap {
   position: relative;
   width: 100%;
@@ -140,8 +225,33 @@
   font-size: 11px;
 }
 
-/* 2. Number Input Box */
+.cf-selected-chip-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #DEE4EA;
+}
+
+.cf-chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* 2. Number with Stepper */
+.cf-number-stepper-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
 .cf-number-input-box {
+  flex: 1;
   display: flex;
   align-items: center;
   background: #1D2125;
@@ -187,7 +297,7 @@
   outline: none;
   color: #DEE4EA;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   padding: 0 2px;
   min-width: 0;
   font-family: inherit;
@@ -207,13 +317,47 @@
   cursor: not-allowed;
 }
 
-/* 3. Formula Box */
-.cf-formula-box {
-  background: #1D2125;
-  border: 1px solid #38414A;
-  border-radius: 4px;
+.cf-stepper-btns {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.cf-btn-stepper {
+  width: 30px;
   height: 34px;
-  padding: 0 12px;
+  border-radius: 4px;
+  border: 1px solid #38414A;
+  background: #1D2125;
+  color: #DEE4EA;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  padding: 0;
+}
+
+.cf-btn-stepper:hover:not(:disabled) {
+  background: #282E33;
+  border-color: #579DFF;
+  color: #FFFFFF;
+}
+
+.cf-btn-stepper:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 3. Formula with Highlighted Box */
+.cf-formula-box {
+  background: rgba(155, 138, 255, 0.08);
+  border: 1.5px solid rgba(155, 138, 255, 0.35);
+  border-radius: 6px;
+  height: 42px;
+  padding: 0 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -221,14 +365,15 @@
 }
 
 .cf-formula-val {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #DEE4EA;
+  font-size: 17px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: -0.2px;
 }
 
 .cf-formula-tag {
   color: #C084FC;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -257,7 +402,7 @@
 }
 
 .cf-datetime-sublabel {
-  font-size: 10.5px;
+  font-size: 11px;
   color: #9FADBC;
   margin-bottom: 2px;
   font-weight: 500;
@@ -315,7 +460,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
   height: 34px;
   padding: 0 10px;
   border-radius: 4px;
@@ -350,15 +495,15 @@
   cursor: not-allowed;
 }
 
-/* 6. Checklist / Checkbox */
+/* 6. Checklist / Checkbox Items */
 .cf-checklist-container {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   background: #1D2125;
   border: 1px solid #38414A;
   border-radius: 4px;
-  padding: 6px 10px;
+  padding: 8px 10px;
 }
 
 .cf-checklist-item {
@@ -461,36 +606,36 @@
   background: #161A1D;
 }
 
-/* Section Footer Link */
+/* Section Footer Links */
 .cf-cardback-footer {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .cf-btn-configure-fields {
   background: none;
   border: none;
   color: #85B8FF;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  padding: 3px 6px;
-  border-radius: 3px;
+  padding: 4px 8px;
+  border-radius: 4px;
   transition: color 0.15s ease, background 0.15s ease;
 }
 
 .cf-btn-configure-fields:hover {
-  background: rgba(87, 157, 255, 0.1);
+  background: rgba(87, 157, 255, 0.12);
   color: #579DFF;
 }
 
 /* Empty state matching Trello Card Cover structure */
 .cf-cardback-empty-box {
-  background: #22272B;
+  background: #181C20;
   border: 1px dashed #454F59;
   border-radius: 8px;
   padding: 16px 20px;
@@ -564,4 +709,24 @@
 
 .cf-btn-trello-primary:active {
   background: #75A8FF;
+}
+
+.cf-btn-trello-secondary {
+  background: #282E33;
+  color: #DEE4EA;
+  border: 1px solid #38414A;
+  border-radius: 4px;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cf-btn-trello-secondary:hover {
+  background: #323940;
+  border-color: #579DFF;
+  color: #579DFF;
 }

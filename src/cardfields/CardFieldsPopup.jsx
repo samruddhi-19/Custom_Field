@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   getBoardSchema,
+  saveBoardSchema,
   getCardFieldValues,
   saveCardFieldValues,
   getBoardMembers,
@@ -21,6 +22,7 @@ import {
   ConditionalIcon,
 } from "../ui/icons.jsx";
 import {
+  INITIAL_FIELDS,
   computeMemberAccessBadge,
   parsePermissionType,
   parseRolesFromPermString,
@@ -258,6 +260,15 @@ export default function CardFieldsPopup({ t }) {
     }
   }
 
+  async function handleLoadStandardFields() {
+    setSchema(INITIAL_FIELDS);
+    try {
+      await saveBoardSchema(t, INITIAL_FIELDS);
+    } catch (e) {
+      console.warn("Failed saving standard schema to board:", e);
+    }
+  }
+
   function handleOpenBoardSettings() {
     if (t && typeof t.modal === "function") {
       t.modal({
@@ -301,18 +312,27 @@ export default function CardFieldsPopup({ t }) {
           </svg>
         </div>
         <div className="cf-cardback-empty-info">
-          <h4 className="cf-cardback-empty-title">No custom fields yet</h4>
+          <h4 className="cf-cardback-empty-title">No custom fields configured yet</h4>
           <p className="cf-cardback-empty-desc">
-            Add text, number, date, dropdown or formula fields to make tracking easier on this card.
+            Load the standard fields (Priority, Points, Hours, Rate, Budget Formula, QA) or configure your own.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleOpenBoardSettings}
-          className="cf-btn-trello-primary"
-        >
-          + Add Custom Field
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            type="button"
+            onClick={handleLoadStandardFields}
+            className="cf-btn-trello-primary"
+          >
+            ⚡ Load Standard Fields
+          </button>
+          <button
+            type="button"
+            onClick={handleOpenBoardSettings}
+            className="cf-btn-trello-secondary"
+          >
+            + Configure
+          </button>
+        </div>
       </div>
     );
   }
@@ -339,34 +359,59 @@ export default function CardFieldsPopup({ t }) {
             canEdit = false;
           }
 
+          const descText = getDefaultDescription(field);
+
           return (
             <div key={field.id} className="cf-cardback-item">
-              {/* Clean Label Header */}
+              {/* Header Row */}
               <div className="cf-cardback-header">
-                <span className="cf-cardback-title" title={field.description || field.name}>
-                  {field.name}
-                </span>
+                <div className="cf-cardback-header-left">
+                  <div className="cf-cardback-icon">{renderFieldTypeIcon(field)}</div>
+                  <span className="cf-cardback-title" title={field.name}>{field.name}</span>
 
-                <div className="cf-cardback-meta">
-                  {isFormula && (
-                    <button
-                      type="button"
-                      className="cf-btn-inspect"
-                      onClick={() =>
-                        setInspectFormulaId((prev) => (prev === field.id ? null : field.id))
-                      }
-                      title="Inspect formula calculation"
-                    >
-                      <span className="cf-tag-formula">fx</span>
-                    </button>
+                  {field.showBadgeFront !== false && (
+                    <span className="cf-badge-cardfront">Card Front</span>
                   )}
 
-                  {!canEdit && (
-                    <span className="cf-tag-locked" title={access.label}>
-                      <LockIcon width={11} height={11} />
-                    </span>
+                  {isFormula && (
+                    <>
+                      <span className="cf-badge-formula">FORMULA</span>
+                      <button
+                        type="button"
+                        className="cf-btn-inspect"
+                        onClick={() =>
+                          setInspectFormulaId((prev) => (prev === field.id ? null : field.id))
+                        }
+                        title="Inspect formula calculation"
+                      >
+                        <SparkleIcon width={11} height={11} />
+                        <span>Inspect</span>
+                      </button>
+                    </>
                   )}
                 </div>
+
+                {/* Right access indicator */}
+                {!isFormula && (
+                  canEdit ? (
+                    <span className="cf-cardback-status-editable">Editable</span>
+                  ) : (
+                    <span className="cf-cardback-status-locked" title={access.label}>
+                      <LockIcon width={10} height={10} />
+                      <span>{access.label.replace("🔒 ", "").replace("✓ ", "")}</span>
+                    </span>
+                  )
+                )}
+              </div>
+
+              {/* Sub-header / Description row */}
+              <div className="cf-cardback-desc" title={descText}>
+                <span className="cf-cardback-desc-icon">
+                  <InfoIcon width={12} height={12} />
+                </span>
+                <span className="cf-cardback-desc-text">
+                  {descText}
+                </span>
               </div>
 
               {/* Control Widgets */}
@@ -375,49 +420,103 @@ export default function CardFieldsPopup({ t }) {
                 (() => {
                   const opts = field.options || [];
                   const selectedOpt = opts.find((o) => o.id === val || o.text === val);
+                  const optColorHex = selectedOpt
+                    ? selectedOpt.color?.startsWith("#")
+                      ? selectedOpt.color
+                      : COLOR_MAP[selectedOpt.color] || "#FF5630"
+                    : "#FF5630";
 
                   return (
-                    <div className="cf-select-wrap">
-                      <select
-                        disabled={!canEdit}
-                        className="cf-cardback-select"
-                        value={selectedOpt ? selectedOpt.id : val || ""}
-                        onChange={(e) => handleChange(field.id, e.target.value)}
-                      >
-                        <option value="">Select option...</option>
-                        {opts.map((opt) => (
-                          <option key={opt.id} value={opt.id}>
-                            {opt.text}
-                          </option>
-                        ))}
-                      </select>
-                      <span className="cf-select-chevron">▾</span>
+                    <div>
+                      <div className="cf-select-wrap">
+                        <select
+                          disabled={!canEdit}
+                          className="cf-cardback-select"
+                          value={selectedOpt ? selectedOpt.id : val || ""}
+                          onChange={(e) => handleChange(field.id, e.target.value)}
+                        >
+                          <option value="">Select option...</option>
+                          {opts.map((opt) => (
+                            <option key={opt.id} value={opt.id}>
+                              {opt.text}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="cf-select-chevron">▾</span>
+                      </div>
+
+                      {selectedOpt && (
+                        <div className="cf-selected-chip-row">
+                          <span className="cf-chip-dot" style={{ background: optColorHex }} />
+                          <span>{selectedOpt.text}</span>
+                        </div>
+                      )}
                     </div>
                   );
                 })()
               )}
 
-              {/* 2. Clean Number Input */}
+              {/* 2. Number with Steppers */}
               {field.type === "number" && (
-                <div className="cf-number-input-box">
-                  {field.prefix && <span className="cf-number-prefix">{field.prefix}</span>}
-                  <input
-                    type="number"
-                    disabled={!canEdit}
-                    className="cf-number-native-input"
-                    value={val !== undefined && val !== null ? val : ""}
-                    placeholder="0"
-                    step={field.decimalPlaces ? `0.${"0".repeat(Math.max(0, field.decimalPlaces - 1))}1` : "any"}
-                    min={field.minValue !== undefined ? field.minValue : undefined}
-                    onChange={(e) =>
-                      handleChange(field.id, e.target.value === "" ? null : Number(e.target.value))
+                (() => {
+                  const numVal = val !== undefined && val !== null && val !== "" ? Number(val) : "";
+                  const step = field.decimalPlaces ? Math.pow(10, -Number(field.decimalPlaces)) : 1;
+
+                  function handleStep(delta) {
+                    if (!canEdit) return;
+                    const cur = typeof numVal === "number" && !isNaN(numVal) ? numVal : (field.minValue !== undefined ? Number(field.minValue) : 0);
+                    let next = Math.round((cur + delta) * 100) / 100;
+                    if (field.minValue !== undefined && next < Number(field.minValue)) {
+                      next = Number(field.minValue);
                     }
-                  />
-                  {field.suffix && <span className="cf-number-suffix">{field.suffix}</span>}
-                </div>
+                    handleChange(field.id, next);
+                  }
+
+                  return (
+                    <div className="cf-number-stepper-row">
+                      <div className="cf-number-input-box">
+                        {field.prefix && <span className="cf-number-prefix">{field.prefix}</span>}
+                        <input
+                          type="number"
+                          disabled={!canEdit}
+                          className="cf-number-native-input"
+                          value={val !== undefined && val !== null ? val : ""}
+                          placeholder="0"
+                          step={field.decimalPlaces ? `0.${"0".repeat(Math.max(0, field.decimalPlaces - 1))}1` : "any"}
+                          min={field.minValue !== undefined ? field.minValue : undefined}
+                          onChange={(e) =>
+                            handleChange(field.id, e.target.value === "" ? null : Number(e.target.value))
+                          }
+                        />
+                        {field.suffix && <span className="cf-number-suffix">{field.suffix}</span>}
+                      </div>
+
+                      <div className="cf-stepper-btns">
+                        <button
+                          type="button"
+                          disabled={!canEdit}
+                          className="cf-btn-stepper"
+                          onClick={() => handleStep(-step)}
+                          title="Decrement"
+                        >
+                          −
+                        </button>
+                        <button
+                          type="button"
+                          disabled={!canEdit}
+                          className="cf-btn-stepper"
+                          onClick={() => handleStep(step)}
+                          title="Increment"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()
               )}
 
-              {/* 3. Formula with Highlighted Box */}
+              {/* 3. Formula Box */}
               {field.type === "formula" && (
                 (() => {
                   const calculated = evaluateFormula(field.formula, schema, values);
@@ -638,10 +737,18 @@ export default function CardFieldsPopup({ t }) {
       <div className="cf-cardback-footer">
         <button
           type="button"
+          onClick={handleLoadStandardFields}
+          className="cf-btn-configure-fields"
+          title="Reset board fields to the 9 standard fields (Priority, Points, Hours, Rate, Budget, QA)"
+        >
+          ⚡ Load Standard Fields
+        </button>
+        <button
+          type="button"
           onClick={handleOpenBoardSettings}
           className="cf-btn-configure-fields"
         >
-          + Add or manage fields
+          ⚙ Configure Fields
         </button>
       </div>
     </div>
