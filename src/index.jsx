@@ -986,9 +986,9 @@ function HostApp() {
             width: "100%",
             maxWidth: 860,
             maxHeight: "92vh",
-            background: "#161A1D",
+            background: "#323940",
             borderRadius: 12,
-            border: "1px solid #333C43",
+            border: "1px solid #38414A",
             boxShadow: "0 24px 64px rgba(0, 0, 0, 0.85)",
             overflowY: "auto",
             display: "flex",
@@ -1000,7 +1000,7 @@ function HostApp() {
               alignItems: "center",
               justifyContent: "space-between",
               padding: "16px 20px 14px",
-              borderBottom: "1px solid #282E33",
+              borderBottom: "1px solid #38414A",
             }}>
               <div>
                 <div style={{ fontSize: 10.5, fontWeight: 700, color: "#85B8FF", textTransform: "uppercase", letterSpacing: 0.6 }}>

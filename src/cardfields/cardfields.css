@@ -1,26 +1,25 @@
-/* ─── Card Back Section Styles ─── */
+/* ─── Trello Native Card Back Section Styles ─── */
 
 .cf-cardback-root {
-  background: #0E1114;
-  color: #F7F8F9;
+  background: transparent;
+  color: #DEE4EA;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-  padding: 18px 20px;
-  border-radius: 8px;
+  padding: 4px 0 14px 0;
   box-sizing: border-box;
   width: 100%;
 }
 
 .cf-cardback-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 22px 28px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
   align-items: start;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 420px) {
   .cf-cardback-grid {
     grid-template-columns: 1fr;
-    gap: 18px;
+    gap: 14px;
   }
 }
 
@@ -30,19 +29,19 @@
   min-width: 0;
 }
 
-/* Header */
+/* Header Line */
 .cf-cardback-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 4px;
-  gap: 8px;
+  gap: 6px;
 }
 
 .cf-cardback-header-left {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   flex-wrap: wrap;
   min-width: 0;
 }
@@ -55,9 +54,9 @@
 }
 
 .cf-cardback-title {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #F7F8F9;
+  font-size: 13px;
+  font-weight: 600;
+  color: #DEE4EA;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -66,11 +65,11 @@
 .cf-badge-cardfront {
   font-size: 9.5px;
   font-weight: 600;
-  color: #36B37E;
-  background: rgba(54, 179, 126, 0.12);
-  border: 1px solid rgba(54, 179, 126, 0.4);
-  border-radius: 4px;
-  padding: 1.5px 6px;
+  color: #4BCE97;
+  background: rgba(75, 206, 151, 0.12);
+  border: 1px solid rgba(75, 206, 151, 0.35);
+  border-radius: 3px;
+  padding: 1px 5px;
   line-height: 1.2;
   white-space: nowrap;
 }
@@ -81,8 +80,8 @@
   color: #C084FC;
   background: rgba(192, 132, 252, 0.15);
   border: 1px solid rgba(192, 132, 252, 0.35);
-  border-radius: 4px;
-  padding: 1.5px 6px;
+  border-radius: 3px;
+  padding: 1px 5px;
   letter-spacing: 0.4px;
   text-transform: uppercase;
 }
@@ -91,7 +90,7 @@
   background: none;
   border: none;
   color: #C084FC;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
@@ -107,8 +106,8 @@
 }
 
 .cf-cardback-status-editable {
-  color: #36B37E;
-  font-size: 11.5px;
+  color: #4BCE97;
+  font-size: 11px;
   font-weight: 600;
   margin-left: auto;
   flex-shrink: 0;
@@ -120,8 +119,8 @@
   font-weight: 600;
   background: rgba(133, 184, 255, 0.1);
   border: 1px solid rgba(133, 184, 255, 0.25);
-  border-radius: 4px;
-  padding: 1px 6px;
+  border-radius: 3px;
+  padding: 1px 5px;
   margin-left: auto;
   display: inline-flex;
   align-items: center;
@@ -134,9 +133,9 @@
   display: flex;
   align-items: flex-start;
   gap: 5px;
-  font-size: 11.5px;
-  color: #8C9BAB;
-  margin-bottom: 8px;
+  font-size: 11px;
+  color: #9FADBC;
+  margin-bottom: 7px;
   line-height: 1.35;
 }
 
@@ -160,46 +159,53 @@
 
 .cf-cardback-select {
   width: 100%;
-  padding: 7.5px 32px 7.5px 12px;
-  background: #14171A;
-  border: 1px solid #2C333A;
-  border-radius: 6px;
-  color: #F7F8F9;
-  font-size: 13px;
+  padding: 6.5px 30px 6.5px 10px;
+  background: #22272B;
+  border: 1px solid #38414A;
+  border-radius: 4px;
+  color: #DEE4EA;
+  font-size: 12.5px;
   font-weight: 500;
   outline: none;
   appearance: none;
   cursor: pointer;
   box-sizing: border-box;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.cf-cardback-select:hover {
+  background: #282E33;
+  border-color: #454F59;
 }
 
 .cf-cardback-select:focus {
   border-color: #579DFF;
+  box-shadow: 0 0 0 1px #579DFF;
 }
 
 .cf-select-chevron {
   position: absolute;
-  right: 12px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
-  color: #8C9BAB;
+  color: #9FADBC;
+  font-size: 11px;
 }
 
 .cf-selected-chip-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 6px;
-  font-size: 12.5px;
+  margin-top: 5px;
+  font-size: 12px;
   font-weight: 600;
   color: #DEE4EA;
 }
 
 .cf-chip-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -208,7 +214,7 @@
 .cf-number-stepper-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
 }
 
@@ -216,23 +222,29 @@
   flex: 1;
   display: flex;
   align-items: center;
-  background: #14171A;
-  border: 1px solid #2C333A;
-  border-radius: 6px;
-  padding: 6.5px 12px;
+  background: #22272B;
+  border: 1px solid #38414A;
+  border-radius: 4px;
+  padding: 5.5px 10px;
   box-sizing: border-box;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.cf-number-input-box:hover {
+  background: #282E33;
+  border-color: #454F59;
 }
 
 .cf-number-input-box:focus-within {
   border-color: #579DFF;
+  box-shadow: 0 0 0 1px #579DFF;
 }
 
 .cf-number-prefix {
-  color: #8C9BAB;
-  font-size: 13px;
+  color: #9FADBC;
+  font-size: 12.5px;
   font-weight: 600;
-  margin-right: 6px;
+  margin-right: 4px;
 }
 
 .cf-number-native-input {
@@ -240,13 +252,13 @@
   background: transparent;
   border: none;
   outline: none;
-  color: #F7F8F9;
-  font-size: 13px;
+  color: #DEE4EA;
+  font-size: 12.5px;
   font-weight: 600;
   min-width: 0;
 }
 
-/* Hide standard number spinners */
+/* Hide native arrows */
 .cf-number-native-input::-webkit-outer-spin-button,
 .cf-number-native-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -257,10 +269,10 @@
 }
 
 .cf-number-suffix {
-  color: #8C9BAB;
-  font-size: 12px;
+  color: #9FADBC;
+  font-size: 11.5px;
   font-weight: 500;
-  margin-left: 6px;
+  margin-left: 4px;
   white-space: nowrap;
 }
 
@@ -271,14 +283,14 @@
 }
 
 .cf-btn-stepper {
-  width: 32px;
-  height: 33px;
-  border-radius: 6px;
-  border: 1px solid #2C333A;
-  background: #14171A;
+  width: 29px;
+  height: 30px;
+  border-radius: 4px;
+  border: 1px solid #38414A;
+  background: #22272B;
   color: #DEE4EA;
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -288,8 +300,8 @@
 }
 
 .cf-btn-stepper:hover:not(:disabled) {
-  background: #1D2125;
-  border-color: #454F59;
+  background: #2C333A;
+  border-color: #579DFF;
   color: #FFFFFF;
 }
 
@@ -300,10 +312,10 @@
 
 /* Formula Card */
 .cf-formula-box {
-  background: rgba(124, 92, 252, 0.08);
-  border: 1px solid rgba(124, 92, 252, 0.28);
-  border-radius: 6px;
-  padding: 9px 14px;
+  background: rgba(155, 138, 255, 0.08);
+  border: 1px solid rgba(155, 138, 255, 0.25);
+  border-radius: 4px;
+  padding: 8px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -311,25 +323,25 @@
 }
 
 .cf-formula-val {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
-  color: #F7F8F9;
+  color: #DEE4EA;
   letter-spacing: -0.2px;
 }
 
 .cf-formula-tag {
-  color: #9B8AFF;
-  font-size: 11px;
+  color: #C084FC;
+  font-size: 10.5px;
   font-weight: 600;
 }
 
 .cf-formula-inspect-panel {
-  margin-top: 6px;
-  padding: 8px 12px;
-  background: rgba(124, 92, 252, 0.12);
-  border: 1px dashed rgba(124, 92, 252, 0.35);
-  border-radius: 6px;
-  font-size: 11.5px;
+  margin-top: 5px;
+  padding: 7px 10px;
+  background: rgba(155, 138, 255, 0.12);
+  border: 1px dashed rgba(155, 138, 255, 0.35);
+  border-radius: 4px;
+  font-size: 11px;
   color: #C084FC;
   line-height: 1.4;
 }
@@ -338,7 +350,7 @@
 .cf-datetime-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
 }
 
@@ -349,8 +361,8 @@
 
 .cf-datetime-sublabel {
   font-size: 10.5px;
-  color: #8C9BAB;
-  margin-bottom: 4px;
+  color: #9FADBC;
+  margin-bottom: 3px;
   font-weight: 500;
 }
 
@@ -358,16 +370,22 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: #14171A;
-  border: 1px solid #2C333A;
-  border-radius: 6px;
-  padding: 6.5px 10px;
+  background: #22272B;
+  border: 1px solid #38414A;
+  border-radius: 4px;
+  padding: 5.5px 8px;
   box-sizing: border-box;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.cf-datetime-input-wrap:hover {
+  background: #282E33;
+  border-color: #454F59;
 }
 
 .cf-datetime-input-wrap:focus-within {
   border-color: #579DFF;
+  box-shadow: 0 0 0 1px #579DFF;
 }
 
 .cf-datetime-native-input {
@@ -375,15 +393,15 @@
   background: transparent;
   border: none;
   outline: none;
-  color: #F7F8F9;
-  font-size: 12.5px;
+  color: #DEE4EA;
+  font-size: 12px;
   font-weight: 500;
   width: 100%;
   font-family: inherit;
 }
 
 .cf-datetime-native-input::-webkit-calendar-picker-indicator {
-  filter: invert(0.8);
+  filter: invert(0.75);
   cursor: pointer;
 }
 
@@ -391,7 +409,7 @@
 .cf-yesno-toggle-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
 }
 
@@ -399,10 +417,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 7.5px 12px;
-  border-radius: 6px;
-  font-size: 12.5px;
+  gap: 5px;
+  padding: 6.5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -410,19 +428,20 @@
 }
 
 .cf-btn-yesno.active {
-  background: #191E24;
-  border: 1.5px solid #388BFF;
+  background: #1C2B41;
+  border: 1.5px solid #579DFF;
   color: #FFFFFF;
-  box-shadow: 0 0 8px rgba(56, 139, 255, 0.2);
+  box-shadow: 0 0 8px rgba(87, 157, 255, 0.25);
 }
 
 .cf-btn-yesno.inactive {
-  background: #14171A;
-  border: 1px solid #2C333A;
-  color: #8C9BAB;
+  background: #22272B;
+  border: 1px solid #38414A;
+  color: #9FADBC;
 }
 
 .cf-btn-yesno.inactive:hover:not(:disabled) {
+  background: #282E33;
   border-color: #454F59;
   color: #DEE4EA;
 }
@@ -436,18 +455,18 @@
 .cf-checklist-container {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  background: #14171A;
-  border: 1px solid #2C333A;
-  border-radius: 6px;
-  padding: 8px 12px;
+  gap: 5px;
+  background: #22272B;
+  border: 1px solid #38414A;
+  border-radius: 4px;
+  padding: 7px 10px;
 }
 
 .cf-checklist-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
+  gap: 7px;
+  font-size: 12px;
   color: #DEE4EA;
   cursor: pointer;
   user-select: none;
@@ -458,79 +477,92 @@
 }
 
 .cf-checklist-checkbox {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
   border: 1.5px solid #454F59;
   background: #1D2125;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  font-size: 11px;
   transition: all 0.15s ease;
 }
 
 .cf-checklist-checkbox.checked {
-  background: #388BFF;
-  border-color: #388BFF;
+  background: #579DFF;
+  border-color: #579DFF;
   color: #FFFFFF;
 }
 
 /* Text Input & Textarea */
 .cf-cardback-textarea {
   width: 100%;
-  background: #14171A;
-  border: 1px solid #2C333A;
-  border-radius: 6px;
-  padding: 8px 12px;
-  color: #F7F8F9;
-  font-size: 12.5px;
+  background: #22272B;
+  border: 1px solid #38414A;
+  border-radius: 4px;
+  padding: 6.5px 10px;
+  color: #DEE4EA;
+  font-size: 12px;
   font-family: inherit;
   resize: vertical;
-  min-height: 48px;
+  min-height: 44px;
   outline: none;
   box-sizing: border-box;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.cf-cardback-textarea:hover {
+  background: #282E33;
+  border-color: #454F59;
 }
 
 .cf-cardback-textarea:focus {
   border-color: #579DFF;
+  box-shadow: 0 0 0 1px #579DFF;
 }
 
 .cf-cardback-input-text {
   width: 100%;
-  background: #14171A;
-  border: 1px solid #2C333A;
-  border-radius: 6px;
-  padding: 7px 12px;
-  color: #F7F8F9;
-  font-size: 12.5px;
+  background: #22272B;
+  border: 1px solid #38414A;
+  border-radius: 4px;
+  padding: 6px 10px;
+  color: #DEE4EA;
+  font-size: 12px;
   font-family: inherit;
   outline: none;
   box-sizing: border-box;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.cf-cardback-input-text:hover {
+  background: #282E33;
+  border-color: #454F59;
 }
 
 .cf-cardback-input-text:focus {
   border-color: #579DFF;
+  box-shadow: 0 0 0 1px #579DFF;
 }
 
 /* Empty state */
 .cf-cardback-empty {
   text-align: center;
-  padding: 28px 16px;
-  color: #8C9BAB;
-  font-size: 13px;
+  padding: 20px 14px;
+  color: #9FADBC;
+  font-size: 12.5px;
 }
 
 .cf-cardback-empty-btn {
-  margin-top: 10px;
+  margin-top: 8px;
   background: #579DFF;
   border: none;
   color: #091E42;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 7px 14px;
-  border-radius: 6px;
+  padding: 6px 12px;
+  border-radius: 4px;
   cursor: pointer;
 }
