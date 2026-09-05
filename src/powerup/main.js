@@ -266,7 +266,7 @@ TrelloPowerUp.initialize({
       content: {
         type: "iframe",
         url: t.signUrl("./cardfields.html"),
-        height: 340,
+        height: 520,
       },
     };
   },

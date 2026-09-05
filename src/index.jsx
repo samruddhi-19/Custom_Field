@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import BoardFieldsPopup from "./boardfields/BoardFieldsPopup.jsx";
+import CardFieldsPopup from "./cardfields/CardFieldsPopup.jsx";
 import "./boardfields/boardfields.css";
 import { SparkleIcon } from "./ui/icons.jsx";
 
@@ -284,6 +285,7 @@ function HostApp() {
 
   const [cards, setCards] = useState(BOARD_CARDS);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCard, setSelectedCard] = useState(null);
 
   function reloadSchemaFromStorage() {
     try {
@@ -350,6 +352,31 @@ function HostApp() {
       setModalOpen(false);
       reloadSchemaFromStorage();
     },
+  };
+
+  const mockCardT = {
+    ...mockT,
+    get: async (_scope, _visibility, key, defaultVal) => {
+      if (key === "custom_fields_schema") return schema;
+      if (key === "custom_fields_values") return selectedCard?.values || {};
+      return defaultVal;
+    },
+    set: async (_scope, _visibility, key, val) => {
+      if (key === "custom_fields_values" && selectedCard) {
+        setCards((prev) =>
+          prev.map((c) => (c.id === selectedCard.id ? { ...c, values: val } : c))
+        );
+        setSelectedCard((prev) => (prev ? { ...prev, values: val } : null));
+      }
+      return Promise.resolve();
+    },
+    card: async () => ({
+      id: selectedCard?.id || "c_1",
+      name: selectedCard?.title || "Feature Task",
+      idMembers: ["mem_alex"],
+    }),
+    closePopup: () => setSelectedCard(null),
+    closeModal: () => setSelectedCard(null),
   };
 
   // Only fields where showBadgeFront is enabled
@@ -758,6 +785,7 @@ function HostApp() {
                 {colCards.map((card) => (
                   <div
                     key={card.id}
+                    onClick={() => setSelectedCard(card)}
                     style={{
                       background: "#22272B",
                       border: "1px solid #333C43",
@@ -937,6 +965,71 @@ function HostApp() {
             flexDirection: "column",
           }}>
             <BoardFieldsPopup t={mockT} />
+          </div>
+        </div>
+      )}
+
+      {/* Card Back Modal Overlay */}
+      {selectedCard && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 9998,
+          background: "rgba(0, 0, 0, 0.75)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 24,
+        }}>
+          <div style={{
+            width: "100%",
+            maxWidth: 860,
+            maxHeight: "92vh",
+            background: "#161A1D",
+            borderRadius: 12,
+            border: "1px solid #333C43",
+            boxShadow: "0 24px 64px rgba(0, 0, 0, 0.85)",
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+          }}>
+            {/* Card Modal Header */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "16px 20px 14px",
+              borderBottom: "1px solid #282E33",
+            }}>
+              <div>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: "#85B8FF", textTransform: "uppercase", letterSpacing: 0.6 }}>
+                  CARD BACK SECTION
+                </div>
+                <h3 style={{ margin: "2px 0 0", fontSize: 16, fontWeight: 700, color: "#F7F8F9" }}>
+                  {selectedCard.title}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedCard(null)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#9FADBC",
+                  fontSize: 20,
+                  cursor: "pointer",
+                  padding: "4px 8px",
+                  borderRadius: 4,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ padding: "16px 20px 24px" }}>
+              <CardFieldsPopup t={mockCardT} />
+            </div>
           </div>
         </div>
       )}

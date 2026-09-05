@@ -1,0 +1,536 @@
+/* ─── Card Back Section Styles ─── */
+
+.cf-cardback-root {
+  background: #0E1114;
+  color: #F7F8F9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  padding: 18px 20px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.cf-cardback-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px 28px;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .cf-cardback-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+.cf-cardback-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Header */
+.cf-cardback-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  gap: 8px;
+}
+
+.cf-cardback-header-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.cf-cardback-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cf-cardback-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #F7F8F9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cf-badge-cardfront {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #36B37E;
+  background: rgba(54, 179, 126, 0.12);
+  border: 1px solid rgba(54, 179, 126, 0.4);
+  border-radius: 4px;
+  padding: 1.5px 6px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.cf-badge-formula {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #C084FC;
+  background: rgba(192, 132, 252, 0.15);
+  border: 1px solid rgba(192, 132, 252, 0.35);
+  border-radius: 4px;
+  padding: 1.5px 6px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.cf-btn-inspect {
+  background: none;
+  border: none;
+  color: #C084FC;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  transition: opacity 0.15s ease;
+}
+
+.cf-btn-inspect:hover {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+.cf-cardback-status-editable {
+  color: #36B37E;
+  font-size: 11.5px;
+  font-weight: 600;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.cf-cardback-status-locked {
+  color: #85B8FF;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: rgba(133, 184, 255, 0.1);
+  border: 1px solid rgba(133, 184, 255, 0.25);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+/* Description / Help text */
+.cf-cardback-desc {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-size: 11.5px;
+  color: #8C9BAB;
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+
+.cf-cardback-desc-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #738496;
+}
+
+.cf-cardback-desc-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Dropdown */
+.cf-select-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.cf-cardback-select {
+  width: 100%;
+  padding: 7.5px 32px 7.5px 12px;
+  background: #14171A;
+  border: 1px solid #2C333A;
+  border-radius: 6px;
+  color: #F7F8F9;
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.cf-cardback-select:focus {
+  border-color: #579DFF;
+}
+
+.cf-select-chevron {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #8C9BAB;
+}
+
+.cf-selected-chip-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #DEE4EA;
+}
+
+.cf-chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Number with Stepper */
+.cf-number-stepper-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.cf-number-input-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #14171A;
+  border: 1px solid #2C333A;
+  border-radius: 6px;
+  padding: 6.5px 12px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.cf-number-input-box:focus-within {
+  border-color: #579DFF;
+}
+
+.cf-number-prefix {
+  color: #8C9BAB;
+  font-size: 13px;
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.cf-number-native-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #F7F8F9;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 0;
+}
+
+/* Hide standard number spinners */
+.cf-number-native-input::-webkit-outer-spin-button,
+.cf-number-native-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.cf-number-native-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.cf-number-suffix {
+  color: #8C9BAB;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+.cf-stepper-btns {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.cf-btn-stepper {
+  width: 32px;
+  height: 33px;
+  border-radius: 6px;
+  border: 1px solid #2C333A;
+  background: #14171A;
+  color: #DEE4EA;
+  font-size: 15px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  padding: 0;
+}
+
+.cf-btn-stepper:hover:not(:disabled) {
+  background: #1D2125;
+  border-color: #454F59;
+  color: #FFFFFF;
+}
+
+.cf-btn-stepper:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Formula Card */
+.cf-formula-box {
+  background: rgba(124, 92, 252, 0.08);
+  border: 1px solid rgba(124, 92, 252, 0.28);
+  border-radius: 6px;
+  padding: 9px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.cf-formula-val {
+  font-size: 17px;
+  font-weight: 700;
+  color: #F7F8F9;
+  letter-spacing: -0.2px;
+}
+
+.cf-formula-tag {
+  color: #9B8AFF;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cf-formula-inspect-panel {
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: rgba(124, 92, 252, 0.12);
+  border: 1px dashed rgba(124, 92, 252, 0.35);
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: #C084FC;
+  line-height: 1.4;
+}
+
+/* Date & Time Dual Pickers */
+.cf-datetime-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.cf-datetime-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.cf-datetime-sublabel {
+  font-size: 10.5px;
+  color: #8C9BAB;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.cf-datetime-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #14171A;
+  border: 1px solid #2C333A;
+  border-radius: 6px;
+  padding: 6.5px 10px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.cf-datetime-input-wrap:focus-within {
+  border-color: #579DFF;
+}
+
+.cf-datetime-native-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #F7F8F9;
+  font-size: 12.5px;
+  font-weight: 500;
+  width: 100%;
+  font-family: inherit;
+}
+
+.cf-datetime-native-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  cursor: pointer;
+}
+
+/* Yes / No Segmented Toggle */
+.cf-yesno-toggle-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.cf-btn-yesno {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7.5px 12px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.cf-btn-yesno.active {
+  background: #191E24;
+  border: 1.5px solid #388BFF;
+  color: #FFFFFF;
+  box-shadow: 0 0 8px rgba(56, 139, 255, 0.2);
+}
+
+.cf-btn-yesno.inactive {
+  background: #14171A;
+  border: 1px solid #2C333A;
+  color: #8C9BAB;
+}
+
+.cf-btn-yesno.inactive:hover:not(:disabled) {
+  border-color: #454F59;
+  color: #DEE4EA;
+}
+
+.cf-btn-yesno:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Checklist / Checkbox Items */
+.cf-checklist-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #14171A;
+  border: 1px solid #2C333A;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.cf-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #DEE4EA;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cf-checklist-item:hover {
+  color: #FFFFFF;
+}
+
+.cf-checklist-checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid #454F59;
+  background: #1D2125;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.cf-checklist-checkbox.checked {
+  background: #388BFF;
+  border-color: #388BFF;
+  color: #FFFFFF;
+}
+
+/* Text Input & Textarea */
+.cf-cardback-textarea {
+  width: 100%;
+  background: #14171A;
+  border: 1px solid #2C333A;
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #F7F8F9;
+  font-size: 12.5px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 48px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.cf-cardback-textarea:focus {
+  border-color: #579DFF;
+}
+
+.cf-cardback-input-text {
+  width: 100%;
+  background: #14171A;
+  border: 1px solid #2C333A;
+  border-radius: 6px;
+  padding: 7px 12px;
+  color: #F7F8F9;
+  font-size: 12.5px;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.cf-cardback-input-text:focus {
+  border-color: #579DFF;
+}
+
+/* Empty state */
+.cf-cardback-empty {
+  text-align: center;
+  padding: 28px 16px;
+  color: #8C9BAB;
+  font-size: 13px;
+}
+
+.cf-cardback-empty-btn {
+  margin-top: 10px;
+  background: #579DFF;
+  border: none;
+  color: #091E42;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
